@@ -22,13 +22,8 @@ line = $40
 ; see "bank_loop" for info on that. Therefore, don't put program code in
 ; bank 1. And bank 0 (0000-2000) has a bunch of reserved stuff in it. Therefore,
 ; put the program in bank 2 starting at 4000. Besides bank_loop's partying,
-; this program sets MLUTS to point to sequential system memory.
-.if TARGETFMT = "hex"
-* = $004000
-.endif
-.if TARGETFMT = "bin"
-* = $4000-$800
-.endif
+; this program sets its MLUT to point to sequential system memory.
+* = $4000
 .logical $4000
 
 tmpr .byte ?            ; A backed-up-and-restored color
@@ -815,23 +810,13 @@ LutDone
 ; Emitted with 
 ;     D:\repos\fnxapp\BitmapEmbedder\x64\Release\BitmapEmbedder.exe D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\livingworlds.bmp D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\colors.s D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\pixmap.s --halfsize
 
-.if TARGETFMT = "hex"
 * = $010000
-.endif
-.if TARGETFMT = "bin"
-* = $010000-$800
-.endif
 .logical $10000
 .include "rsrc/pixmap.s"
 .endlogical
 
 ; Write the system vectors
-.if TARGETFMT = "hex"
 * = $00FFF8
-.endif
-.if TARGETFMT = "bin"
-* = $00FFF8-$800
-.endif
 .logical $FFF8
 .byte $00
 F256_DUMMYIRQ       ; Abort vector
