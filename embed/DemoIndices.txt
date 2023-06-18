@@ -1,0 +1,17 @@
+scene(1).php			July - Desert
+scene(2).php			July - Desert
+scene(3).php			August - Acquarius
+scene(4).php			December - Winter Manor
+scene(5).php			November - Mirror Pond - Rain
+scene(6).php			February - Mountain Stream 
+scene(7).php			February - Mountain Stream 
+scene(8).php			April - Deep Forest
+scene(9).php			April - Deep Forest
+scene(10).php			March - Monolith Plains
+scene(11).php			January - Winter Forest
+scene(12).php			January - Winter Forest
+scene(13).php			September - Seascape
+
+
+
+scene(19).php			May - Jungle Waterfall (rain)

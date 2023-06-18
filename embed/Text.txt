@@ -1,0 +1,24 @@
+cycles:[{reverse:2,rate:0,low:94,high:96},
+{reverse:0,rate:0,low:46,high:47},
+{reverse:0,rate:0,low:49,high:55},
+{reverse:2,rate:0,low:50,high:52},
+{reverse:2,rate:0,low:52,high:54},
+{reverse:2,rate:0,low:53,high:55},
+{reverse:0,rate:0,low:51,high:55},
+{reverse:0,rate:0,low:51,high:53},
+{reverse:0,rate:0,low:0,high:0},
+{reverse:0,rate:0,low:0,high:0},
+{reverse:2,rate:0,low:0,high:0},
+{reverse:2,rate:0,low:0,high:0},
+{reverse:0,rate:3456,low:202,high:207},
+{reverse:0,rate:4224,low:196,high:201},
+{reverse:0,rate:2457,low:208,high:215},
+{reverse:0,rate:2457,low:216,high:223}
+
+Cycles: 
+196-201 inclusive
+202-207 inclusive
+208-215 inclusive
+216-223 inclusive
+This matches up with the last four lines above.
+Ignore all the cycles of rate 0.

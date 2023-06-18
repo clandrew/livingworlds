@@ -1,0 +1,11 @@
+.vs/
+Debug/
+Release/
+x64/
+/fnx/reference/
+/fnx/Debug
+/fnx/Release
+/fnx/x64
+/fnx/.vs
+*.lbl
+*.php
