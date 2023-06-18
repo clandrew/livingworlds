@@ -75,80 +75,7 @@ ClearScreen_ForEach
     PLA
     STA MMU_IO_CTRL ; Restore I/O page
     RTS
-
-PrintAnsiString
-    LDX #$00
-    LDY #$00
     
-    LDA MMU_IO_CTRL ; Back up I/O page
-    PHA
-    
-    LDA #$02 ; Set I/O page to 2
-    STA MMU_IO_CTRL
-
-    LDA #<TX_DEMOTEXT
-    STA src_pointer
-
-    LDA #>TX_DEMOTEXT
-    STA src_pointer+1
-
-PrintAnsiString_EachCharToTextMemory
-    LDA (src_pointer),y                          ; Load the character to print
-    BEQ PrintAnsiString_DoneStoringToTextMemory  ; Exit if null term        
-    STA (text_memory_pointer),Y                  ; Store character to text memory
-    INY
-    BRA PrintAnsiString_EachCharToTextMemory
-
-PrintAnsiString_DoneStoringToTextMemory
-
-    STY TextLength
-
-    LDA #$03 ; Set I/O page to 3
-    STA MMU_IO_CTRL
-
-    LDA #$F0 ; Text color
-
-PrintAnsiString_EachCharToColorMemory
-    ADC #$10
-    DEY
-    STA (text_memory_pointer),Y
-    BNE PrintAnsiString_EachCharToColorMemory
-
-    PLA
-    STA MMU_IO_CTRL ; Restore I/O page
-
-    RTS    
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-UpdateTextColors 
-    LDA MMU_IO_CTRL ; Back up I/O page
-    PHA
-
-    LDY #$00
-
-    LDA #$03 ; Set I/O page to 3
-    STA MMU_IO_CTRL
-    
-    LDA text_memory_pointer
-    STA dst_pointer
-
-    LDA text_memory_pointer+1
-    STA dst_pointer+1
-
-UpdateTextColors_ForEachCharacter
-    LDA (text_memory_pointer),Y 
-    ADC #$10
-    STA (text_memory_pointer),Y 
-    INY
-    CPY TextLength
-    BNE UpdateTextColors_ForEachCharacter
-    
-    PLA
-    STA MMU_IO_CTRL ; Restore I/O page
-
-    RTS
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 F256_RESET
@@ -781,16 +708,8 @@ MAIN
     AND #$FE
     STA VKY_TXT_CURSOR_CTRL_REG
     
-    JSR ClearScreen    
-    
-    ; Put text at the bottom of the screen, allowing for border
-    LDA #(<VKY_TEXT_MEMORY + $E8)
-    STA text_memory_pointer
-    LDA #((>VKY_TEXT_MEMORY) + $03)
-    STA text_memory_pointer+1
-
-    ;JSR PrintAnsiString
-         
+    JSR ClearScreen        
+             
     ; Clear to black
     LDA #$00
     STA $D00D ; Background red channel
@@ -804,8 +723,6 @@ MAIN
     LDA #$01 
     STA TyVKY_BM0_CTRL_REG ; Make sure bitmap 0 is turned on. Setting no more bits leaves LUT selection to 0
     
-    ;JSR CopyTextLutToDevice
-
     JSR CopyBitmapLutToDevice
 
     ; Now copy graphics data
@@ -945,38 +862,6 @@ LutLoop
 LutDone
     ; Go back to I/O page 0
     STZ MMU_IO_CTRL 
-
-    RTS
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-CopyTextLutToDevice
-    ; Switch to page 0 because the lut lives there
-    LDA #0
-    STA MMU_IO_CTRL
-    
-    LDA $EC00 ; test thingy
-
-    ; Store a dest pointer in $30-$31
-    LDA #<VKY_TXT_FGLUT
-    STA dst_pointer
-    LDA #>VKY_TXT_FGLUT
-    STA dst_pointer+1
-    
-    ; Store a source pointer
-    LDA #<TEXT_LUT_START
-    STA src_pointer
-    LDA #>TEXT_LUT_START
-    STA src_pointer+1
-    
-    LDY #65
-
-TextLutLoop
-    DEY
-    LDA (src_pointer),Y
-    STA (dst_pointer),Y
-    CPY #$00
-    BNE TextLutLoop
 
     RTS
 
