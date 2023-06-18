@@ -1,16 +1,24 @@
-scene(1).php			July - Desert
-scene(2).php			July - Desert
-scene(3).php			August - Acquarius
-scene(4).php			December - Winter Manor
-scene(5).php			November - Mirror Pond - Rain
-scene(6).php			February - Mountain Stream 
+
+																														Recommended for demo
+scene(1).php			July - Desert								Not animated
+scene(2).php			July - Desert								Not animated
+scene(3).php			August - Acquarius																				Y
+scene(4).php			December - Winter Manor						Needs UI
+scene(5).php			November - Mirror Pond - Rain																	Y
+scene(6).php			February - Mountain Stream																		Y
 scene(7).php			February - Mountain Stream 
-scene(8).php			April - Deep Forest
+scene(8).php			April - Deep Forest																				Y
 scene(9).php			April - Deep Forest
-scene(10).php			March - Monolith Plains
-scene(11).php			January - Winter Forest
-scene(12).php			January - Winter Forest
-scene(13).php			September - Seascape
+scene(10).php			March - Monolith Plains						Subtle so may not work well
+scene(11).php			January - Winter Forest - Clear
+scene(12).php			January - Winter Forest - Snowy				Doesn't adapt well to being downscaled.
+scene(13).php			September - Seascape						Works well											Y
+scene(14).php			September - Seascape						Works well
+scene(15).php			Early October - Haunted Ruins - Clear		Non animated
+scene(16).php			Early October - Haunted Ruins - Rain		Non animated										Y
+scene(17).php			November - Winter Pond - Clear																	Y
+scene(18).php			May - Jungle Waterfall - Clear																	Y
+scene(19).php			May - Jungle Waterfall - Cloudy																	
 
 
 
