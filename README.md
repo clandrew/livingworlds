@@ -4,7 +4,7 @@ This is a color cycling demo based on Mark Ferrari's "Living Worlds" found here:
 How to run it on F256k or F256 Jr:
   * Use an F256 system with a 65816-based CPU.
   * Build the vcproj accordingly.
-  * Use a tool like the 'F256 Uploader', distributed by the hardware vendor, or FoenixMgr available [here](https://github.com/pweingar/FoenixMgr) to transmit the binary over COM3 (USB) interface. Choose "Boot from RAM" and load it at 0x800.
+  * Use a tool like the 'F256 Uploader', distributed by the hardware vendor, or FoenixMgr available [here](https://github.com/pweingar/FoenixMgr) to transmit the binary over COM3 (USB) interface. Choose "Boot from RAM" and load it at 0x0000, or the offset in the filename for already-released binaries (e.g., if the release is called livingworlds.0800.bin, load it at 0800).
 
 -----
 
