@@ -129,8 +129,8 @@ MAIN
     and #$03
     sta $D103
 
-    ;;;;;;;;;;;;;;;
-
+    ;;;;;;;;;;;;;;; 
+    
     ; Set the line number to 0
     stz line
 
@@ -138,29 +138,19 @@ MAIN
     lda #(IMG_START8 >> 13)
     sta bm_bank
 bank_loop: 
-    stz dst_pointer ; Set the pointer to start of the current bank
-    lda #$20
-    sta dst_pointer+1
-    ; Set the column to 0
-    stz column
-    stz column+1
-    ; Alter the LUT entries for $2000 -> $bfff
-
-    lda #$80 ; Turn on editing of MMU LUT #0, and use #0
-    sta MMU_MEM_CTRL
-    lda bm_bank
-    sta MMU_MEM_BANK_1 ; Set the bank we will map to $2000 - $3fff
-    stz MMU_MEM_CTRL ; Turn off editing of MMU LUT #0
+    JSR LoadImage_InitBank
 
     ; Fill the line with the color..
 loop2_fillLine
     lda line ; The line number is the color of the line
 
     sta (dst_pointer)
-    inc_column: inc column ; Increment the column number
+    inc column ; Increment the column number
     bne chk_col
     inc column+1
-    chk_col: lda column ; Check to see if we have finished the row
+
+chk_col: 
+    lda column ; Check to see if we have finished the row
     cmp #<320
     bne inc_point
     lda column+1
@@ -175,7 +165,9 @@ loop2_fillLine
 
     stz column ; Set the column to 0
     stz column+1
-    inc_point: inc dst_pointer ; Increment pointer
+
+inc_point: 
+    inc dst_pointer ; Increment pointer
     bne loop2_fillLine ; If < $4000, keep looping
     inc dst_pointer+1
     lda dst_pointer+1
@@ -185,7 +177,6 @@ loop2_fillLine
     bra bank_loop ; And start filling it
 
 Done_Init
-    JSR LoadImage
 
     JSR Init_IRQHandler
     
@@ -203,7 +194,22 @@ Lock
     JMP Lock
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-LoadImage
+LoadImage_InitBank
+    stz dst_pointer ; Set the pointer to start of the current bank
+    lda #$20
+    sta dst_pointer+1
+    ; Set the column to 0
+    stz column
+    stz column+1
+    ; Alter the LUT entries for $2000 -> $bfff
+
+    lda #$80 ; Turn on editing of MMU LUT #0, and use #0
+    sta MMU_MEM_CTRL
+    lda bm_bank
+    sta MMU_MEM_BANK_1 ; Set the bank we will map to $2000 - $3fff
+    stz MMU_MEM_CTRL ; Turn off editing of MMU LUT #0
+
+    RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
