@@ -360,26 +360,27 @@ LutDone
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CycleColors
-    LDA #6  ; Cycle length
+    ; Precondition: Cycle length in A
+    ;               src_pointer initialized to the beginning of changed palette
+    INC A ; todo: remove this
     STA iter_i
 
-    ; Load     201  200  199  198  197  196  tmp
-    ; Save     tmp  201  200  199  198  197  196
-    
-    ; src_pointer is supposed to be smaller.
-    LDA >#(LUT_START + (196*4)) ; Bake src_pointer    
-    STA src_pointer+1
-    LDA <#(LUT_START + (196*4)) 
-    STA src_pointer
+    DEC A ; Bake y based on length of cycle
+    ASL
+    ASL
+    DEC A
+    DEC A    
+    TAY    
 
-    ; Bake dst_pointer = src_pointer + 4
-    LDA >#(LUT_START + (196*4) + 4)
-    STA dst_pointer+1
-    LDA <#(LUT_START + (196*4) + 4)
+    ; Set dst_pointer = src_pointer + 4    
+    CLC
+    LDA src_pointer
+    ADC #$04
     STA dst_pointer
+    LDA src_pointer+1
+    ADC #$00 ; Add carry
+    STA dst_pointer+1
 
-    ; Bake y based on length of cycle(6) = 6 * 4 - 4 - 1 - 1
-    LDY #$12
     ; Back up edge of cycle
     PHY
     LDA (dst_pointer),Y
@@ -408,6 +409,8 @@ CycleColors_Loop
     DEC iter_i
     BNE CycleColors_Loop
 
+    LDY #2
+
     ; Complete edge from backup
     LDA tmpb
     STA (src_pointer),Y
@@ -424,23 +427,43 @@ CycleColors_Loop
 
 UpdateLut
     
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
-
-    ; Put rotation code here
-    ; Cycles: 
     ; 196-201 inclusive
-    ; 202-207 inclusive
-    ; 208-215 inclusive
-    ; 216-223 inclusive
-    ; LUT_START is at $E1C4
-
+    LDA >#(LUT_START + (196*4))
+    STA src_pointer+1
+    LDA <#(LUT_START + (196*4)) 
+    STA src_pointer
+    LDA #5  ; Cycle length
     JSR CycleColors
     
-UpdateLutDone
+    ; 202-207 inclusive
+    LDA >#(LUT_START + (202*4))
+    STA src_pointer+1
+    LDA <#(LUT_START + (202*4)) 
+    STA src_pointer
+    LDA #5  ; Cycle length
+    JSR CycleColors
+    
+    ; 208-215 inclusive
+    LDA >#(LUT_START + (208*4))
+    STA src_pointer+1
+    LDA <#(LUT_START + (208*4)) 
+    STA src_pointer
+    LDA #7  ; Cycle length
+    JSR CycleColors
+    
+    ; 216-223 inclusive
+    LDA >#(LUT_START + (216*4))
+    STA src_pointer+1
+    LDA <#(LUT_START + (216*4)) 
+    STA src_pointer
+    LDA #7  ; Cycle length
+    JSR CycleColors
+
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+.align 4, $EA ; Align, padding with nops
 .include "rsrc/colors.s"
 .include "rsrc/textcolors.s"
 
