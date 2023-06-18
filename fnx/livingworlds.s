@@ -362,11 +362,9 @@ LutDone
 CycleColors
     ; Precondition: Cycle length in A
     ;               src_pointer initialized to the beginning of changed palette
-    INC A ; todo: remove this
     STA iter_i
 
-    DEC A ; Bake y based on length of cycle
-    ASL
+    ASL; Bake y based on length of cycle
     ASL
     DEC A
     DEC A    
@@ -392,8 +390,6 @@ CycleColors
     LDA (dst_pointer),Y
     STA tmpr    
     PLY
-
-    DEC iter_i
 
 CycleColors_Loop
     LDA (src_pointer),Y
