@@ -1,4 +1,4 @@
-LUT_START
+LUT_START5
 .byte $00, $00, $00, $00
 .byte $d7, $b3, $a7, $00
 .byte $d3, $af, $a3, $00

@@ -121,11 +121,11 @@ MAIN
     JSR CopyBitmapLutToDevice
 
     ; Now copy graphics data
-    lda #<IMG_START ; Set the low byte of the bitmap’s address
+    lda #<IMG_START8 ; Set the low byte of the bitmap’s address
     sta $D101
-    lda #>IMG_START ; Set the middle byte of the bitmap’s address
+    lda #>IMG_START8 ; Set the middle byte of the bitmap’s address
     sta $D102
-    lda #`IMG_START ; Set the upper two bits of the address
+    lda #`IMG_START8 ; Set the upper two bits of the address
     and #$03
     sta $D103
 
@@ -135,7 +135,7 @@ MAIN
     stz line
 
     ; Calculate the bank number for the bitmap
-    lda #(IMG_START >> 13)
+    lda #(IMG_START8 >> 13)
     sta bm_bank
 bank_loop: 
     stz dst_pointer ; Set the pointer to start of the current bank
@@ -185,6 +185,7 @@ loop2_fillLine
     bra bank_loop ; And start filling it
 
 Done_Init
+    JSR LoadImage
 
     JSR Init_IRQHandler
     
@@ -200,6 +201,9 @@ Lock
     WAI
     WAI
     JMP Lock
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LoadImage
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -313,9 +317,9 @@ CopyBitmapLutToDevice
     STA dst_pointer+1
 
     ; Store a source pointer
-    LDA #<LUT_START
+    LDA #<LUT_START8
     STA src_pointer
-    LDA #>LUT_START
+    LDA #>LUT_START8
     STA src_pointer+1
 
     LDX #$00

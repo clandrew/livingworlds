@@ -1,4 +1,4 @@
-LUT_START
+LUT_START3
 .byte $00, $00, $00, $00
 .byte $53, $2b, $27, $00
 .byte $57, $3b, $1f, $00

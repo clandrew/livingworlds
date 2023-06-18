@@ -144,7 +144,7 @@ void WriteEmbedding(int sceneIndex)
 		// Dump the palette
 		std::wstring outputFile = destPaletteFilename;
 		std::ofstream out(outputFile);
-		out << "LUT_START\n";
+		out << "LUT_START" << sceneIndex << "\n";
 		int colorIndex = 0;
 		for (auto it = colors.begin(); it != colors.end() && colorIndex < 256; ++it)
 		{
@@ -195,7 +195,7 @@ void WriteEmbedding(int sceneIndex)
 			}
 			if (lineCount == 0)
 			{
-				out << "IMG_START = *\n";
+				out << "IMG_START" << sceneIndex << " = *\n";
 			}
 
 			int counter = 0;
@@ -284,9 +284,9 @@ void WriteEmbedding(int sceneIndex)
 			Cycle const& c = cycles[i];
 
 			out << "    ; " << c.Low << "-" << c.High << " inclusive\n";
-			out << "    LDA >#(LUT_START + (" << c.Low << "*4))\n";
+			out << "    LDA >#(LUT_START" << sceneIndex << " + (" << c.Low << " * 4))\n";
 			out << "    STA src_pointer+1\n";
-			out << "    LDA <#(LUT_START + (" << c.Low << "*4))\n";
+			out << "    LDA <#(LUT_START" << sceneIndex << " + (" << c.Low << "*4))\n";
 			out << "    STA src_pointer\n";
 			int cycleLength = c.High - c.Low;
 			out << "    LDA #" << cycleLength << "; Cycle length\n";
