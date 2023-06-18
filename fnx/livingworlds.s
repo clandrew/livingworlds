@@ -9,7 +9,6 @@ dst_pointer = $30
 src_pointer = $32
 column = $34
 bm_bank = $35
-TextLength = $36
 text_memory_pointer = $38
 AnimationCounter = $37
 line = $40
@@ -110,6 +109,9 @@ MAIN
     STA $D00E ; Background green channel
     LDA #$00
     STA $D00F ; Background blue channel
+
+    ; Turn off the border
+    STZ VKY_BRDR_CTRL
     
     STZ TyVKY_BM1_CTRL_REG ; Make sure bitmap 1 is turned off
     STZ TyVKY_BM2_CTRL_REG ; Make sure bitmap 2 is turned off    
