@@ -362,10 +362,14 @@ LutDone
 CycleColors
     LDA #6  ; Cycle length
     STA iter_i
+
+    ; Load     201  200  199  198  197  196  tmp
+    ; Save     tmp  201  200  199  198  197  196
     
-    LDA >#(LUT_START + (196*4) + 4) ; Bake src_pointer    
+    ; src_pointer is supposed to be smaller.
+    LDA >#(LUT_START + (196*4)) ; Bake src_pointer    
     STA src_pointer+1
-    LDA <#(LUT_START + (196*4) + 4) 
+    LDA <#(LUT_START + (196*4)) 
     STA src_pointer
 
     ; Bake dst_pointer = src_pointer + 4
@@ -376,8 +380,8 @@ CycleColors
 
     ; Bake y based on length of cycle(6) = 6 * 4 - 4 - 1 - 1
     LDY #$12
-
     ; Back up edge of cycle
+    PHY
     LDA (dst_pointer),Y
     STA tmpb
     DEY
@@ -386,9 +390,8 @@ CycleColors
     DEY
     LDA (dst_pointer),Y
     STA tmpr    
-    DEY
+    PLY
 
-    DEY ; Skip alpha
     DEC iter_i
 
 CycleColors_Loop
