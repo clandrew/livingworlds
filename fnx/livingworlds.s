@@ -31,36 +31,6 @@ tmpg .byte ?
 tmpb .byte ?
 iter_i .byte ?          ; Couple counters
 iter_j .byte ?
-
-ClearScreen
-    LDA MMU_IO_CTRL ; Back up I/O page
-    PHA
-    
-    LDA #$02 ; Set I/O page to 2
-    STA MMU_IO_CTRL
-    
-    STZ dst_pointer
-    LDA #$C0
-    STA dst_pointer+1
-
-ClearScreen_ForEach
-    LDA #32 ; Character 0
-    STA (dst_pointer)
-        
-    CLC
-    LDA dst_pointer
-    ADC #$01
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-
-    CMP #$C5
-    BNE ClearScreen_ForEach
-    
-    PLA
-    STA MMU_IO_CTRL ; Restore I/O page
-    RTS
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -113,6 +83,38 @@ F256_RESET
 
     CLI ; Enable interrupts
     JMP MAIN
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ClearScreen
+    LDA MMU_IO_CTRL ; Back up I/O page
+    PHA
+    
+    LDA #$02 ; Set I/O page to 2
+    STA MMU_IO_CTRL
+    
+    STZ dst_pointer
+    LDA #$C0
+    STA dst_pointer+1
+
+ClearScreen_ForEach
+    LDA #32 ; Character 0
+    STA (dst_pointer)
+        
+    CLC
+    LDA dst_pointer
+    ADC #$01
+    STA dst_pointer
+    LDA dst_pointer+1
+    ADC #$00 ; Add carry
+    STA dst_pointer+1
+
+    CMP #$C5
+    BNE ClearScreen_ForEach
+    
+    PLA
+    STA MMU_IO_CTRL ; Restore I/O page
+    RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -558,9 +560,6 @@ UpdateLut
 UpdateLutDone
     RTS
 
-; Easier to simply not have to do this programmatically.
-indcache .word 176, 236, 296, 356, 416, 476, 536, 596, 656, 716, 776, 836, 896, 956, 1016
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 IRQ_Handler
@@ -582,62 +581,9 @@ IRQ_Handler
     BEQ IRQ_Handler_Done
     
     ; Clear the flag for start-of-frame
-    STA INT_PENDING_REG0
-        
-    LDA #1
-    STA MMU_IO_CTRL ; xxx
+    STA INT_PENDING_REG0        
 
-    ; Store a dest pointer in $30-$31
-    LDA #<VKY_GR_CLUT_0
-    STA dst_pointer
-    LDA #>VKY_GR_CLUT_0
-    STA dst_pointer+1
-
-    ; Store a source pointer
-    LDA #<LUT_START
-    STA src_pointer
-    LDA #>LUT_START
-    STA src_pointer+1
-
-    LDX #$00
-
-LutLoop2
-    LDY #$0
-    
-    LDA (src_pointer),Y
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    STA (dst_pointer),Y
-
-    INX
-    BEQ LutDone2     ; When X overflows, exit
-
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoop2
-    
-LutDone2    
-    STZ MMU_IO_CTRL    
-
-AfterUpdatePalette 
-    DEC AnimationCounter
+    JSR CopyBitmapLutToDevice
 
 IRQ_Handler_Done
     ; Restore the I/O page
@@ -649,6 +595,8 @@ IRQ_Handler_Done
     PLA
     PLP
     RTI
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 Init_IRQHandler
     ; Back up I/O state
@@ -675,6 +623,8 @@ Init_IRQHandler
     PLA ; Restore I/O state
     STA MMU_IO_CTRL 
     RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .include "rsrc/colors.s"
 .include "rsrc/textcolors.s"
@@ -853,9 +803,6 @@ LutDone
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-TX_DEMOTEXT
-.text "livingworlds demo by haydenkale"
-.byte 0 ; null term
 .endlogical
 
 ; Emitted with 
