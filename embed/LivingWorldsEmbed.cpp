@@ -38,15 +38,39 @@ std::vector<int> MakeHalfsize(std::vector<int> indexedBuffer, int imageWidth, in
 	return result;
 }
 
-int main()
+void WriteEmbedding(int sceneIndex)
 {
-	std::wstring destPaletteFilename = L"D:\\repos\\livingworlds\\fnx\\rsrc\\colors.s";
-	std::wstring destImageFilename = L"D:\\repos\\livingworlds\\fnx\\rsrc\\pixmap.s";
-	std::wstring destCodeFilename = L"D:\\repos\\livingworlds\\fnx\\cycle.s";
+	std::wstring directory = L"D:\\repos\\livingworlds\\fnx\\";
+
+	std::wstring destPaletteFilename;
+	{
+		std::wstringstream ss;
+		ss << directory << "rsrc\\colors." << sceneIndex << ".s";
+		destPaletteFilename = ss.str();
+	}
+	std::wstring destImageFilename;
+	{
+		std::wstringstream ss;
+		ss << directory << "rsrc\\pixmap." << sceneIndex << ".s";
+		destImageFilename = ss.str();
+	}
+	std::wstring destCodeFilename;
+	{
+		std::wstringstream ss;
+		ss << directory << "cycle." << sceneIndex << ".s";
+		destCodeFilename = ss.str();
+	}
+	std::wstring inputFilename;
+	{
+		std::wstringstream ss;
+		ss << L"scene(" << sceneIndex << ").php";
+		inputFilename = ss.str();
+	}
+
 	bool emitCompileOffsets = false;
 	bool halfsize = true;
 
-	std::ifstream input("scene(8).php");
+	std::ifstream input(inputFilename);
 
 	std::string firstline;
 	std::getline(input, firstline);
@@ -270,4 +294,16 @@ int main()
 			out << "\n";
 		}
 	}
+}
+
+int main()
+{
+	WriteEmbedding(3);
+	WriteEmbedding(5);
+	WriteEmbedding(6);
+	WriteEmbedding(8);
+	WriteEmbedding(13);
+	WriteEmbedding(16);
+	WriteEmbedding(17);
+	WriteEmbedding(18);
 }

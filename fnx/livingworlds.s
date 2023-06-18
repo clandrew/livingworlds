@@ -422,14 +422,13 @@ CycleColors_Loop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 UpdateLut
-.include "cycle.s"
+.include "cycle.8.s"
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .align 4, $EA ; Align, padding with nops
-.include "rsrc/colors.s"
-.include "rsrc/textcolors.s"
+.include "rsrc/colors.8.s"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -440,7 +439,7 @@ UpdateLut
 
 * = $010000
 .logical $10000
-.include "rsrc/pixmap.s"
+.include "rsrc/pixmap.8.s"
 .endlogical
 
 ; Write the system vectors
