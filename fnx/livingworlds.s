@@ -362,22 +362,20 @@ LutDone
 CycleColors
     LDA #6  ; Cycle length
     STA iter_i
-
-    ; Bake src_pointer = #196 * 4 = $310
-    LDA #$03
+    
+    LDA >#(LUT_START + (196*4) + 4) ; Bake src_pointer    
     STA src_pointer+1
-    LDA #$10
+    LDA <#(LUT_START + (196*4) + 4) 
     STA src_pointer
 
     ; Bake dst_pointer = src_pointer + 4
-    LDA #$03
+    LDA >#(LUT_START + (196*4) + 4)
     STA dst_pointer+1
-    LDA #$14
+    LDA <#(LUT_START + (196*4) + 4)
     STA dst_pointer
 
-    ; Bake y based on length of cycle(6) = 6 * 4 = cycle spans 24 bytes of color
-    ; Start backup at byte 23 
-    LDY #23
+    ; Bake y based on length of cycle(6) = 6 * 4 - 4 - 1 - 1
+    LDY #$12
 
     ; Back up edge of cycle
     LDA (dst_pointer),Y
