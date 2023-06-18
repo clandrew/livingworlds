@@ -18,13 +18,18 @@ line = $40
 * = $000000 
         .byte 0
 
+; This program uses bank 1 (2000-4000) to be a memory window into image data -
+; see "bank_loop" for info on that. Therefore, don't put program code in
+; bank 1. And bank 0 (0000-2000) has a bunch of reserved stuff in it. Therefore,
+; put the program in bank 2 starting at 4000. Besides bank_loop's partying,
+; this program sets MLUTS to point to sequential system memory.
 .if TARGETFMT = "hex"
-* = $00E000
+* = $004000
 .endif
 .if TARGETFMT = "bin"
-* = $00E000-$800
+* = $4000-$800
 .endif
-.logical $E000
+.logical $4000
 
 tmpr .byte ?            ; A backed-up-and-restored color
 tmpg .byte ?            
@@ -745,6 +750,8 @@ Lock
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 CopyBitmapLutToDevice
+    ; Called on startup and every frame during VBLANK.
+
     ; Switch to page 1 because the lut lives there
     LDA #1
     STA MMU_IO_CTRL
