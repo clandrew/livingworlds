@@ -359,6 +359,67 @@ LutDone
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CycleColors
+    LDA #6  ; Cycle length
+    STA iter_i
+
+    ; Bake src_pointer = #196 * 4 = $310
+    LDA #$03
+    STA src_pointer+1
+    LDA #$10
+    STA src_pointer
+
+    ; Bake dst_pointer = src_pointer + 4
+    LDA #$03
+    STA dst_pointer+1
+    LDA #$14
+    STA dst_pointer
+
+    ; Bake y based on length of cycle(6) = 6 * 4 = cycle spans 24 bytes of color
+    ; Start backup at byte 23 
+    LDY #23
+
+    ; Back up edge of cycle
+    LDA (dst_pointer),Y
+    STA tmpb
+    DEY
+    LDA (dst_pointer),Y
+    STA tmpg
+    DEY
+    LDA (dst_pointer),Y
+    STA tmpr    
+    DEY
+
+    DEY ; Skip alpha
+    DEC iter_i
+
+CycleColors_Loop
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+    DEY
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+    DEY
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+    DEY
+    DEY
+    DEC iter_i
+    BNE CycleColors_Loop
+
+    ; Complete edge from backup
+    LDA tmpb
+    STA (src_pointer),Y
+    DEY
+    LDA tmpg
+    STA (src_pointer),Y
+    DEY
+    LDA tmpr
+    STA (src_pointer),Y
+
+    RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 UpdateLut
     
@@ -372,432 +433,7 @@ UpdateLut
     ; 216-223 inclusive
     ; LUT_START is at $E1C4
 
-    CLC     ; disable interrupts
-    SEI
-    
-    CLC ; Try entering native mode
-    XCE ; 
-
-    .as
-    .xl
-    SEP #$20
-    REP #$10
-    
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; 196-201 inclusive
-    LDX #201*4
-    LDA LUT_START,X
-    STA tmpb
-    INX
-    LDA LUT_START,X
-    STA tmpg
-    INX
-    LDA LUT_START,X
-    STA tmpr
-
-    LDX #200*4
-    LDY #201*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-
-    LDX #199*4
-    LDY #200*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDX #198*4
-    LDY #199*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDX #197*4
-    LDY #198*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDX #196*4
-    LDY #197*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDY #196*4
-    LDA tmpb
-    STA LUT_START,Y
-    INY
-    LDA tmpg
-    STA LUT_START,Y
-    INY
-    LDA tmpr
-    STA LUT_START,Y
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
-    ; 202-207 inclusive
-    LDX #207*4
-    LDA LUT_START,X
-    STA tmpb
-    INX
-    LDA LUT_START,X
-    STA tmpg
-    INX
-    LDA LUT_START,X
-    STA tmpr
-
-    LDX #206*4
-    LDY #207*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    
-    LDX #205*4
-    LDY #206*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #204*4
-    LDY #205*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #203*4
-    LDY #204*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #202*4
-    LDY #203*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDY #202*4
-    LDA tmpb
-    STA LUT_START,Y
-    INY
-    LDA tmpg
-    STA LUT_START,Y
-    INY
-    LDA tmpr
-    STA LUT_START,Y
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
-    ; 208-215 inclusive
-    
-    LDX #215*4
-    LDA LUT_START,X
-    STA tmpb
-    INX
-    LDA LUT_START,X
-    STA tmpg
-    INX
-    LDA LUT_START,X
-    STA tmpr
-
-    LDX #214*4
-    LDY #215*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y    
-    
-    LDX #213*4
-    LDY #214*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #212*4
-    LDY #213*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #211*4
-    LDY #212*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #210*4
-    LDY #211*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #209*4
-    LDY #210*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #208*4
-    LDY #209*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDY #208*4
-    LDA tmpb
-    STA LUT_START,Y
-    INY
-    LDA tmpg
-    STA LUT_START,Y
-    INY
-    LDA tmpr
-    STA LUT_START,Y
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; 216-223 inclusive
-    
-    LDX #223*4
-    LDA LUT_START,X
-    STA tmpb
-    INX
-    LDA LUT_START,X
-    STA tmpg
-    INX
-    LDA LUT_START,X
-    STA tmpr
-
-    LDX #222*4
-    LDY #223*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y    
-    
-    LDX #221*4
-    LDY #222*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #220*4
-    LDY #221*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #219*4
-    LDY #220*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #218*4
-    LDY #219*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #217*4
-    LDY #218*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    
-    LDX #216*4
-    LDY #217*4
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-    INX
-    INY
-    LDA LUT_START,X
-    STA LUT_START,Y
-
-    LDY #216*4
-    LDA tmpb
-    STA LUT_START,Y
-    INY
-    LDA tmpg
-    STA LUT_START,Y
-    INY
-    LDA tmpr
-    STA LUT_START,Y
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    .as
-    .xs
-    REP #$20 ; Need to do this
-    SEC      ; Go back to emulation mode
-    XCE
-    
-    CLI ; Enable interrupts again
+    JSR CycleColors
     
 UpdateLutDone
     RTS
