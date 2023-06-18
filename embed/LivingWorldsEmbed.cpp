@@ -10,6 +10,13 @@ struct PaletteColor
 	int R, G, B;
 };
 
+struct Cycle
+{
+	int Low;
+	int High;
+	int Rate;
+};
+
 std::vector<int> MakeHalfsize(std::vector<int> indexedBuffer, int imageWidth, int imageHeight)
 {
 	// Assumption: this is a 1byte per pixel image.
@@ -33,25 +40,27 @@ std::vector<int> MakeHalfsize(std::vector<int> indexedBuffer, int imageWidth, in
 
 int main()
 {
-	std::wstring destPaletteFilename = L"D:\\repos\\wormhole\\tinyvicky\\rsrc\\colors.s";
-	std::wstring destImageFilename = L"D:\\repos\\wormhole\\tinyvicky\\rsrc\\pixmap.s";
+	std::wstring destPaletteFilename = L"D:\\repos\\livingworlds\\fnx\\rsrc\\colors.s";
+	std::wstring destImageFilename = L"D:\\repos\\livingworlds\\fnx\\rsrc\\pixmap.s";
+	std::wstring destCodeFilename = L"D:\\repos\\livingworlds\\fnx\\cycle.s";
 	bool emitCompileOffsets = false;
 	bool halfsize = true;
 
 	std::ifstream input("scene(8).php");
 
-	std::string line;
-	std::getline(input, line);
+	std::string firstline;
+	std::getline(input, firstline);
 
 	size_t index = 0;
 
 	std::string prefix = "colors:[";
-	size_t colorsIndex = line.find(prefix);
+	size_t colorsIndex = firstline.find(prefix);
 	index = colorsIndex;
 	index += prefix.length();
 
 	std::vector<PaletteColor> colors;
 	std::vector<int> pixelData;
+	std::vector<Cycle> cycles;
 
 	for (int i = 0; i < 256; ++i)
 	{
@@ -59,22 +68,22 @@ int main()
 
 		{
 			index++; // [
-			size_t rIndex = line.find(",", index);
-			std::istringstream ss(line.substr(index, rIndex - index));
+			size_t rIndex = firstline.find(",", index);
+			std::istringstream ss(firstline.substr(index, rIndex - index));
 			ss >> color.R;
 			index = rIndex;
 		}
 		{
 			index++; // ,
-			size_t rIndex = line.find(",", index);
-			std::istringstream ss(line.substr(index, rIndex - index));
+			size_t rIndex = firstline.find(",", index);
+			std::istringstream ss(firstline.substr(index, rIndex - index));
 			ss >> color.G;
 			index = rIndex;
 		}
 		{
 			index++; // ,
-			size_t rIndex = line.find("]", index);
-			std::istringstream ss(line.substr(index, rIndex - index));
+			size_t rIndex = firstline.find("]", index);
+			std::istringstream ss(firstline.substr(index, rIndex - index));
 			ss >> color.B;
 			index = rIndex;
 		}
@@ -89,6 +98,7 @@ int main()
 	// Now read the pixel data
 	for (int y = 0; y < 480; ++y)
 	{
+		std::string line;
 		std::getline(input, line);
 		index = 0;
 		for (int x = 0; x < 640; ++x)
@@ -190,5 +200,74 @@ int main()
 		out << "IMG_END = *";
 	}
 
-	int i = 5;
+	{
+		index = 0;
+
+		std::string prefix = "cycles:[";
+		index = firstline.find(prefix);
+		index += prefix.length();
+
+		while (1)
+		{
+			Cycle cycle;
+
+			{
+				std::string prefix = "rate:";
+				index = firstline.find(prefix, index);
+				index += prefix.length();
+				size_t rIndex = firstline.find(',', index);
+				std::istringstream ss(firstline.substr(index, rIndex - index));
+				ss >> cycle.Rate;
+				index = rIndex;
+			}
+			{
+				std::string prefix = "low:";
+				index = firstline.find(prefix, index);
+				index += prefix.length();
+				size_t rIndex = firstline.find(',', index);
+				std::istringstream ss(firstline.substr(index, rIndex - index));
+				ss >> cycle.Low;
+				index = rIndex;
+			}
+			{
+				std::string prefix = "high:";
+				index = firstline.find(prefix, index);
+				index += prefix.length();
+				size_t rIndex = firstline.find('}', index);
+				std::istringstream ss(firstline.substr(index, rIndex - index));
+				ss >> cycle.High;
+				index = rIndex;
+			}
+
+			if (cycle.Rate > 0)
+			{
+				cycles.push_back(cycle);
+			}
+			index = firstline.find('}', index);
+			index++;
+			if (firstline[index] == ']')
+			{
+				break;
+			}
+		}
+
+		// Dump some cycling code
+		std::wstring outputFile = destCodeFilename;
+		std::ofstream out(outputFile);
+
+		for (int i = 0; i < cycles.size(); ++i)
+		{
+			Cycle const& c = cycles[i];
+
+			out << "    ; " << c.Low << "-" << c.High << " inclusive\n";
+			out << "    LDA >#(LUT_START + (" << c.Low << "*4))\n";
+			out << "    STA src_pointer+1\n";
+			out << "    LDA <#(LUT_START + (" << c.Low << "*4))\n";
+			out << "    STA src_pointer\n";
+			int cycleLength = c.High - c.Low;
+			out << "    LDA #" << cycleLength << "; Cycle length\n";
+			out << "    JSR CycleColors\n";
+			out << "\n";
+		}
+	}
 }

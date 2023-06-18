@@ -142,6 +142,7 @@
     <ClCompile Include="LivingWorldsEmbed.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="CycleFormat.txt" />
     <Text Include="DemoIndices.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -23,5 +23,8 @@
     <Text Include="DemoIndices.txt">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="CycleFormat.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
