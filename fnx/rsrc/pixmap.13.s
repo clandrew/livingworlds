@@ -4800,4 +4800,4 @@ IMG_START13 = *
 .byte $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df
 .byte $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df
 .byte $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df, $df
-IMG_END = *
+IMG_ENDd = *

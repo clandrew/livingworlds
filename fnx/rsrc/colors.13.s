@@ -256,4 +256,4 @@ LUT_START13
 .byte $eb, $db, $db, $00
 .byte $ff, $ff, $ff, $00
 
-LUT_END = *
+LUT_ENDd = *

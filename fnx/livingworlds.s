@@ -377,6 +377,7 @@ UpdateLut
 * = $010000
 .logical $10000
 .include "rsrc/pixmap.8.s"
+.include "rsrc/pixmap.13.s"
 .endlogical
 
 ; Write the system vectors

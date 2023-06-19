@@ -162,7 +162,7 @@ void WriteEmbedding(int sceneIndex)
 		}
 
 		out << "\n";
-		out << "LUT_END = *";
+		out << "LUT_END" << sceneIndex << " = *";
 	}
 	if (halfsize)
 	{
@@ -221,7 +221,7 @@ void WriteEmbedding(int sceneIndex)
 			lineCount++;
 		}
 
-		out << "IMG_END = *";
+		out << "IMG_END" << sceneIndex << " = *";
 	}
 
 	{

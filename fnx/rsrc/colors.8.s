@@ -256,4 +256,4 @@ LUT_START8
 .byte $ff, $ff, $ff, $00
 .byte $ff, $ff, $ff, $00
 
-LUT_END = *
+LUT_END8 = *

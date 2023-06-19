@@ -256,4 +256,4 @@ LUT_START16
 .byte $0b, $0b, $0b, $00
 .byte $ff, $ff, $ff, $00
 
-LUT_END = *
+LUT_END10 = *

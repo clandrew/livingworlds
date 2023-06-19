@@ -4800,4 +4800,4 @@ IMG_START16 = *
 .byte $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $fe, $5d, $5d, $5d, $5d, $5d, $5d, $5d
 .byte $5d, $5d, $5d, $5b, $5b, $5c, $5d, $5d, $5b, $5b, $5c, $be, $5d, $5d, $fe, $ad
 .byte $5d, $5c, $ad, $5d, $fe, $5c, $5c, $5d, $5d, $5d, $5d, $fe, $fe, $fe, $fe, $fe
-IMG_END = *
+IMG_END10 = *

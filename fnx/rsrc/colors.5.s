@@ -256,4 +256,4 @@ LUT_START5
 .byte $e7, $73, $ff, $00
 .byte $ff, $ff, $ff, $00
 
-LUT_END = *
+LUT_END5 = *
