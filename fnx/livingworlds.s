@@ -8,10 +8,7 @@
 dst_pointer = $30
 src_pointer = $32
 column = $34
-bm_bank = $35
-text_memory_pointer = $38
-AnimationCounter = $37
-line = $40
+lineNumber = $40
 
 ; Code
 * = $000000 
@@ -122,66 +119,14 @@ MAIN
 
     ; Now copy graphics data
     lda #<IMG_START8 ; Set the low byte of the bitmap’s address
-    sta $D101
+    sta TyVKY_BM0_START_ADDY_L
     lda #>IMG_START8 ; Set the middle byte of the bitmap’s address
-    sta $D102
+    sta TyVKY_BM0_START_ADDY_M
     lda #`IMG_START8 ; Set the upper two bits of the address
     and #$03
-    sta $D103
+    sta TyVKY_BM0_START_ADDY_H
 
-    ;;;;;;;;;;;;;;; 
-    
-    ; Set the line number to 0
-    stz line
-
-    ; Calculate the bank number for the bitmap
-    lda #(IMG_START8 >> 13)
-    sta bm_bank
-bank_loop: 
-    JSR LoadImage_InitBank
-
-    ; Fill the line with the color..
-loop2_fillLine
-    lda line ; The line number is the color of the line
-
-    sta (dst_pointer)
-    inc column ; Increment the column number
-    bne chk_col
-    inc column+1
-
-chk_col: 
-    lda column ; Check to see if we have finished the row
-    cmp #<320
-    bne inc_point
-    lda column+1
-    cmp #>320
-    bne inc_point
-
-    LDA line ; If so, increment the line number
-    inc a
-    STA line
-    cmp #240 ; If line = 240, we’re done
-    beq Done_Init
-
-    stz column ; Set the column to 0
-    stz column+1
-
-inc_point: 
-    inc dst_pointer ; Increment pointer
-    bne loop2_fillLine ; If < $4000, keep looping
-    inc dst_pointer+1
-    lda dst_pointer+1
-    cmp #$40
-    bne loop2_fillLine
-    inc bm_bank ; Move to the next bank
-    bra bank_loop ; And start filling it
-
-Done_Init
-
-    JSR Init_IRQHandler
-    
-    LDA #$01
-    STA AnimationCounter
+    JSR Init_IRQHandler    
 
 Lock
     JSR UpdateLut
@@ -193,25 +138,7 @@ Lock
     WAI
     JMP Lock
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-LoadImage_InitBank
-    stz dst_pointer ; Set the pointer to start of the current bank
-    lda #$20
-    sta dst_pointer+1
-    ; Set the column to 0
-    stz column
-    stz column+1
-    ; Alter the LUT entries for $2000 -> $bfff
-
-    lda #$80 ; Turn on editing of MMU LUT #0, and use #0
-    sta MMU_MEM_CTRL
-    lda bm_bank
-    sta MMU_MEM_BANK_1 ; Set the bank we will map to $2000 - $3fff
-    stz MMU_MEM_CTRL ; Turn off editing of MMU LUT #0
-
-    RTS
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;
 
 Init_IRQHandler
     ; Back up I/O state
