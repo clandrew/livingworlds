@@ -10,8 +10,10 @@ dst_pointer = $30
 src_pointer = $32
 right_arrow_cur = $34
 right_arrow_next = $35
-current_lut_pointer = $36
+left_arrow_cur = $36
+left_arrow_next = $37
 scene_index = $38
+current_lut_pointer = $3A
 lineNumber = $40
 
 ; Scene index 0 - 13
@@ -161,11 +163,49 @@ Lock
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PollLeftArrow
+    LDA #(1 << 0 ^ $FF)
+    STA VIA1_PRA
+    LDA VIA1_PRB
+    CMP #(1 << 2 ^ $FF)
+    BNE LeftArrow_NotPressed
+
+LeftArrow_Pressed
+    LDA #$FF
+    STA left_arrow_next
+    BRA LeftArrow_DonePoll
+
+LeftArrow_NotPressed
+    LDA #$00
+    STA left_arrow_next
+
+LeftArrow_DonePoll
+    LDA left_arrow_next
+    CMP #$00
+    BNE LeftArrow_DoneAll
+
+    LDA left_arrow_cur
+    CMP #$FF
+    BNE LeftArrow_DoneAll
+
+    ; Advance to next scene here
+    LDA scene_index
+    CMP #0 ; limit
+    BEQ LeftArrow_Wraparound
+    DEC scene_index
+    BRA LeftArrow_InitializeScene
+LeftArrow_Wraparound
+    LDA #(2-1)
+    STA scene_index
+LeftArrow_InitializeScene
+    JSR InitializeScene
+    
+LeftArrow_DoneAll
+    LDA left_arrow_next
+    STA left_arrow_cur
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 PollRightArrow
-
     LDA #(1 << 6 ^ $FF)
     STA VIA1_PRA
     LDA VIA0_PRB
