@@ -3,12 +3,19 @@
 .include "includes/TinyVicky_Def.asm"
 .include "includes/interrupt_def.asm"
 .include "includes/f256jr_registers.asm"
+.include "includes/f256k_registers.asm"
 .include "includes/macros.s"
 
 dst_pointer = $30
 src_pointer = $32
-column = $34
+right_arrow_cur = $34
+right_arrow_next = $35
+current_lut_pointer = $36
+scene_index = $38
 lineNumber = $40
+
+; Scene index 0 - 13
+; Scene index 1 - 8
 
 ; Code
 * = $000000 
@@ -115,7 +122,118 @@ MAIN
     LDA #$01 
     STA TyVKY_BM0_CTRL_REG ; Make sure bitmap 0 is turned on. Setting no more bits leaves LUT selection to 0
     
+    ; Initialize matrix keyboard
+    LDA #$FF
+    STA VIA1_DDRA
+    LDA #$00
+    STA VIA1_DDRB
+
+    STZ VIA1_PRB
+    STZ VIA1_PRA
+    
+    LDA #$7F
+    STA VIA0_DDRA
+    STA VIA0_PRA
+    STZ VIA0_PRB
+    
+    STZ right_arrow_cur
+    STZ right_arrow_next
+
+    STZ scene_index
+    JSR InitializeScene
+    
     JSR CopyBitmapLutToDevice
+
+    JSR Init_IRQHandler    
+
+Lock
+    JSR UpdateLut
+    JSR PollLeftArrow
+    JSR PollRightArrow
+
+    WAI
+    WAI
+    WAI
+    WAI
+    WAI
+    WAI
+    JMP Lock
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+PollLeftArrow
+    RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+PollRightArrow
+
+    LDA #(1 << 6 ^ $FF)
+    STA VIA1_PRA
+    LDA VIA0_PRB
+    CMP #(1 << 7 ^ $FF)
+    BNE RightArrow_NotPressed
+
+RightArrow_Pressed
+    LDA #$FF
+    STA right_arrow_next
+    BRA RightArrow_DonePoll
+
+RightArrow_NotPressed
+    LDA #$00
+    STA right_arrow_next
+
+RightArrow_DonePoll
+    LDA right_arrow_next
+    CMP #$00
+    BNE RightArrow_DoneAll
+
+    LDA right_arrow_cur
+    CMP #$FF
+    BNE RightArrow_DoneAll
+
+    ; Advance to next scene here
+    LDA scene_index
+    CMP #(2-1) ; limit
+    BEQ RightArrow_Wraparound
+    INC scene_index
+    BRA RightArrow_InitializeScene
+RightArrow_Wraparound
+    STZ scene_index
+RightArrow_InitializeScene
+    JSR InitializeScene
+    
+RightArrow_DoneAll
+    LDA right_arrow_next
+    STA right_arrow_cur
+
+    RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+InitializeScene
+    LDA scene_index
+    CMP #$1
+    BEQ InitScene1
+
+InitScene0
+    LDA #<LUT_START13
+    STA current_lut_pointer
+    LDA #>LUT_START13
+    STA current_lut_pointer+1
+    
+    ; Now copy graphics data
+    lda #<IMG_START13 ; Set the low byte of the bitmap’s address
+    sta TyVKY_BM0_START_ADDY_L
+    lda #>IMG_START13 ; Set the middle byte of the bitmap’s address
+    sta TyVKY_BM0_START_ADDY_M
+    lda #`IMG_START13 ; Set the upper two bits of the address
+    and #$03
+    sta TyVKY_BM0_START_ADDY_H
+    RTS
+
+InitScene1
+    LDA #<LUT_START8
+    STA current_lut_pointer
+    LDA #>LUT_START8
+    STA current_lut_pointer+1
 
     ; Now copy graphics data
     lda #<IMG_START8 ; Set the low byte of the bitmap’s address
@@ -124,19 +242,8 @@ MAIN
     sta TyVKY_BM0_START_ADDY_M
     lda #`IMG_START8 ; Set the upper two bits of the address
     and #$03
-    sta TyVKY_BM0_START_ADDY_H
-
-    JSR Init_IRQHandler    
-
-Lock
-    JSR UpdateLut
-    WAI
-    WAI
-    WAI
-    WAI
-    WAI
-    WAI
-    JMP Lock
+    sta TyVKY_BM0_START_ADDY_H    
+    RTS
 
 ;;;;;;;;;;;;
 
@@ -250,9 +357,9 @@ CopyBitmapLutToDevice
     STA dst_pointer+1
 
     ; Store a source pointer
-    LDA #<LUT_START8
+    LDA current_lut_pointer
     STA src_pointer
-    LDA #>LUT_START8
+    LDA current_lut_pointer+1
     STA src_pointer+1
 
     LDX #$00
@@ -357,15 +464,34 @@ CycleColors_Loop
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Cycle13
+.include "cycle.13.s"
+    RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Cycle8
+.include "cycle.8.s"
+    RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 UpdateLut
-.include "cycle.8.s"
+    LDA scene_index
+    CMP #1
+    BEQ UpdateLutScene1
+   
+UpdateLutScene0
+    JSR Cycle13
+    RTS
+
+UpdateLutScene1
+    JSR Cycle8
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-.align 4, $EA ; Align, padding with nops
+.align 4, $EA 
 .include "rsrc/colors.8.s"
+.align 4, $EA ; Align, padding with nops
+.include "rsrc/colors.13.s"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

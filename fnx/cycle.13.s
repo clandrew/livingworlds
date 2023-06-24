@@ -53,4 +53,3 @@
     STA src_pointer
     LDA #9; Cycle length
     JSR CycleColors
-
