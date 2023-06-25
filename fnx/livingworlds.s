@@ -13,9 +13,11 @@ right_arrow_next = $35
 left_arrow_cur = $36
 left_arrow_next = $37
 scene_index = $38
-fade_index = $39
+fade_in_index = $39
 current_lut_pointer = $3A
-lineNumber = $40
+fade_out_index = $3C
+next_scene_index = $3D
+fade_key = $3E
 
 ; Scene index 0 - 13
 ; Scene index 1 - 8
@@ -145,7 +147,9 @@ MAIN
     STZ right_arrow_cur
     STZ right_arrow_next
 
-    STZ fade_index
+    STZ fade_in_index
+    STZ fade_out_index
+    STZ fade_key
     STZ scene_index
     JSR InitializeScene
     
@@ -156,17 +160,35 @@ MAIN
 Lock
     JSR UpdateLut
 
-    LDA fade_index
+    LDA fade_in_index
     CMP #$00
-    BNE Fading
+    BNE FadingIn
+
+    LDA fade_out_index
+    CMP #$00
+    BNE FadingOut
 
 PollKeyboard
     JSR PollLeftArrow
     JSR PollRightArrow
     BRA WaitFor
 
-Fading
-    DEC fade_index
+FadingIn
+    DEC fade_in_index
+    DEC fade_key
+    BRA WaitFor
+
+FadingOut
+    INC fade_out_index
+    INC fade_key
+    LDA fade_key
+    CMP #7
+    BNE WaitFor
+    ; Advance to the next scene
+    STZ fade_out_index
+    LDA next_scene_index
+    STA scene_index
+    JSR InitializeScene
 
 WaitFor
     WAI
@@ -205,15 +227,18 @@ LeftArrow_DonePoll
 
     ; Advance to next scene here
     LDA scene_index
+    STA next_scene_index
     CMP #0 ; limit
     BEQ LeftArrow_Wraparound
-    DEC scene_index
+    DEC next_scene_index
     BRA LeftArrow_InitializeScene
 LeftArrow_Wraparound
     LDA #(5-1)
-    STA scene_index
+    STA next_scene_index
 LeftArrow_InitializeScene
-    JSR InitializeScene
+    LDA #1
+    STA fade_out_index
+    STA fade_key
     
 LeftArrow_DoneAll
     LDA left_arrow_next
@@ -248,14 +273,17 @@ RightArrow_DonePoll
 
     ; Advance to next scene here
     LDA scene_index
+    STA next_scene_index
     CMP #(5-1) ; limit
     BEQ RightArrow_Wraparound
-    INC scene_index
+    INC next_scene_index
     BRA RightArrow_InitializeScene
 RightArrow_Wraparound
-    STZ scene_index
+    STZ next_scene_index
 RightArrow_InitializeScene
-    JSR InitializeScene
+    LDA #1
+    STA fade_out_index
+    STA fade_key
     
 RightArrow_DoneAll
     LDA right_arrow_next
@@ -347,7 +375,8 @@ InitScene4
 
 InitializeScene
     LDA #6
-    STA fade_index
+    STA fade_in_index
+    STA fade_key
 
     LDA scene_index
     CMP #$0
@@ -489,7 +518,7 @@ Fade
 
     ; Input in A
     ; Output in A
-    LDX fade_index
+    LDX fade_key
     CPX #0
     BEQ Fade0
     CPX #1
