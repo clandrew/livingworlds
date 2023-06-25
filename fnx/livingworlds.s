@@ -13,8 +13,10 @@ right_arrow_next = $35
 left_arrow_cur = $36
 left_arrow_next = $37
 scene_index = $38
-fade_index = $39
-current_lut_pointer = $3A
+fade_in_index = $39
+fade_out_index = $3A
+next_scene_index = $3B
+current_lut_pointer = $3C
 lineNumber = $40
 
 ; Scene index 0 - 13
@@ -143,8 +145,10 @@ MAIN
     STZ right_arrow_cur
     STZ right_arrow_next
 
-    STZ fade_index
+    STZ fade_in_index
+    STZ fade_out_index
     STZ scene_index
+    STZ next_scene_index
     JSR InitializeScene
     
     JSR CopyBitmapLutToDevice
@@ -154,17 +158,33 @@ MAIN
 Lock
     JSR UpdateLut
 
-    LDA fade_index
+    LDA fade_in_index
     CMP #$00
-    BNE Fading
+    BNE FadingIn
+
+    LDA fade_out_index
+    CMP #$00
+    BNE FadingOut
 
 PollKeyboard
     JSR PollLeftArrow
     JSR PollRightArrow
     BRA WaitFor
 
-Fading
-    DEC fade_index
+FadingIn
+    DEC fade_in_index
+    BRA WaitFor
+
+FadingOut
+    INC fade_out_index
+    LDA fade_out_index
+    CMP #7
+    BNE WaitFor
+    LDA next_scene_index
+    STA scene_index
+    JSR InitializeScene
+    STZ fade_out_index
+    BRA WaitFor
 
 WaitFor
     WAI
@@ -205,13 +225,15 @@ LeftArrow_DonePoll
     LDA scene_index
     CMP #0 ; limit
     BEQ LeftArrow_Wraparound
-    DEC scene_index
+    DEC A
+    STA next_scene_index
     BRA LeftArrow_InitializeScene
 LeftArrow_Wraparound
     LDA #(3-1)
-    STA scene_index
+    STA next_scene_index
 LeftArrow_InitializeScene
-    JSR InitializeScene
+    LDA #1
+    STA fade_out_index
     
 LeftArrow_DoneAll
     LDA left_arrow_next
@@ -248,12 +270,14 @@ RightArrow_DonePoll
     LDA scene_index
     CMP #(3-1) ; limit
     BEQ RightArrow_Wraparound
-    INC scene_index
+    INC A
+    STA next_scene_index
     BRA RightArrow_InitializeScene
 RightArrow_Wraparound
-    STZ scene_index
+    STZ next_scene_index
 RightArrow_InitializeScene
-    JSR InitializeScene
+    LDA #1
+    STA fade_out_index
     
 RightArrow_DoneAll
     LDA right_arrow_next
@@ -316,7 +340,7 @@ InitScene2
 
 InitializeScene
     LDA #6
-    STA fade_index
+    STA fade_in_index
 
     LDA scene_index
     CMP #$0
@@ -439,41 +463,77 @@ ClearScreen_ForEach
     RTS
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-Fade
+FadeIn
     PHX
 
     ; Input in A
     ; Output in A
-    LDX fade_index
+    LDX fade_in_index
     CPX #0
-    BEQ Fade0
+    BEQ FadeIn0
     CPX #1
-    BEQ Fade1
+    BEQ FadeIn1
     CPX #2
-    BEQ Fade2
+    BEQ FadeIn2
     CPX #3
-    BEQ Fade3
+    BEQ FadeIn3
     CPX #4
-    BEQ Fade4
+    BEQ FadeIn4
     CPX #5
-    BEQ Fade5
+    BEQ FadeIn5
 
-Fade6
+FadeIn6
     LSR
-Fade5
+FadeIn5
     LSR
-Fade4
+FadeIn4
     LSR
-Fade3
+FadeIn3
     LSR
-Fade2
+FadeIn2
     LSR
-Fade1
+FadeIn1
     LSR
-Fade0
+FadeIn0
     PLX
     RTS
 
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+FadeOut
+    PHX
+
+    ; Output in A
+    ; Output in A
+    LDX fade_out_index
+    CPX #0
+    BEQ FadeOut0
+    CPX #1
+    BEQ FadeOut1
+    CPX #2
+    BEQ FadeOut2
+    CPX #3
+    BEQ FadeOut3
+    CPX #4
+    BEQ FadeOut4
+    CPX #5
+    BEQ FadeOut5
+
+FadeOut6
+    LSR
+FadeOut5
+    LSR
+FadeOut4
+    LSR
+FadeOut3
+    LSR
+FadeOut2
+    LSR
+FadeOut1
+    LSR
+FadeOut0
+    PLX
+    RTS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 CopyBitmapLutToDevice
@@ -501,15 +561,18 @@ LutLoop
     LDY #$0
     
     LDA (src_pointer),Y
-    JSR Fade
+    JSR FadeIn
+    JSR FadeOut
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
-    JSR Fade
+    JSR FadeIn
+    JSR FadeOut
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
-    JSR Fade
+    JSR FadeIn
+    JSR FadeOut
     STA (dst_pointer),Y
 
     INX
