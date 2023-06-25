@@ -570,6 +570,8 @@ CopyBitmapLutToDevice
     STA src_pointer+1
 
     LDX #$00
+    LDA fade_key
+    BEQ LutLoopTestNoFade
 
 LutLoop
     LDY #$0
@@ -605,6 +607,38 @@ LutLoop
     ADC #$00 ; Add carry
     STA src_pointer+1
     BRA LutLoop
+
+LutLoopTestNoFade
+    LDY #$0
+    
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+    INY
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+    INY
+    LDA (src_pointer),Y
+    STA (dst_pointer),Y
+
+    INX
+    BEQ LutDone     ; When X overflows, exit
+
+    CLC
+    LDA dst_pointer
+    ADC #$04
+    STA dst_pointer
+    LDA dst_pointer+1
+    ADC #$00 ; Add carry
+    STA dst_pointer+1
+    
+    CLC
+    LDA src_pointer
+    ADC #$04
+    STA src_pointer
+    LDA src_pointer+1
+    ADC #$00 ; Add carry
+    STA src_pointer+1
+    BRA LutLoopTestNoFade
     
 LutDone
     ; Go back to I/O page 0
