@@ -20,7 +20,6 @@ lineNumber = $40
 ; Scene index 0 - 13
 ; Scene index 1 - 8
 ; Scene index 2 - 16
-; Scene index 3 - 17
 
 ; Code
 * = $000000 
@@ -209,7 +208,7 @@ LeftArrow_DonePoll
     DEC scene_index
     BRA LeftArrow_InitializeScene
 LeftArrow_Wraparound
-    LDA #(4-1)
+    LDA #(3-1)
     STA scene_index
 LeftArrow_InitializeScene
     JSR InitializeScene
@@ -247,7 +246,7 @@ RightArrow_DonePoll
 
     ; Advance to next scene here
     LDA scene_index
-    CMP #(4-1) ; limit
+    CMP #(3-1) ; limit
     BEQ RightArrow_Wraparound
     INC scene_index
     BRA RightArrow_InitializeScene
@@ -314,23 +313,6 @@ InitScene2
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-InitScene3
-    LDA #<LUT_START17
-    STA current_lut_pointer
-    LDA #>LUT_START17
-    STA current_lut_pointer+1
-
-    ; Now copy graphics data
-    lda #<IMG_START17 ; Set the low byte of the bitmap’s address
-    sta TyVKY_BM0_START_ADDY_L
-    lda #>IMG_START17 ; Set the middle byte of the bitmap’s address
-    sta TyVKY_BM0_START_ADDY_M
-    lda #`IMG_START17 ; Set the upper two bits of the address
-    and #$03
-    sta TyVKY_BM0_START_ADDY_H    
-    RTS
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 InitializeScene
     LDA #6
@@ -345,9 +327,6 @@ InitializeScene
     
     CMP #$2
     BEQ LInitScene2
-    
-    CMP #$3
-    BEQ LInitScene3
 
     RTS
 
@@ -361,11 +340,8 @@ LInitScene1
 
 LInitScene2
     JSR InitScene2
-    RTS    
-
-LInitScene3
-    JSR InitScene3
     RTS
+
 ;;;;;;;;;;;;
 
 Init_IRQHandler
@@ -636,10 +612,6 @@ Cycle16
 .include "cycle.16.s"
     RTS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-Cycle17
-.include "cycle.17.s"
-    RTS
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 UpdateLut
     LDA scene_index
@@ -649,8 +621,6 @@ UpdateLut
     BEQ UpdateLutScene1
     CMP #2
     BEQ UpdateLutScene2
-    CMP #3
-    BEQ UpdateLutScene3
     RTS
    
 UpdateLutScene0
@@ -665,10 +635,6 @@ UpdateLutScene2
     JSR Cycle16
     RTS
 
-UpdateLutScene3
-    JSR Cycle17
-    RTS
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .align 4, $EA 
@@ -677,8 +643,6 @@ UpdateLutScene3
 .include "rsrc/colors.13.s"
 .align 4, $EA 
 .include "rsrc/colors.16.s"
-.align 4, $EA 
-.include "rsrc/colors.17.s"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -692,7 +656,6 @@ UpdateLutScene3
 .include "rsrc/pixmap.8.s"
 .include "rsrc/pixmap.13.s"
 .include "rsrc/pixmap.16.s"
-.include "rsrc/pixmap.17.s"
 .endlogical
 
 ; Write the system vectors
