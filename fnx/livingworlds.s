@@ -273,8 +273,7 @@ InitScene0
     sta TyVKY_BM0_START_ADDY_L
     lda #>IMG_START13 ; Set the middle byte of the bitmap’s address
     sta TyVKY_BM0_START_ADDY_M
-    lda #`IMG_START13 ; Set the upper two bits of the address
-    and #$03
+    lda #`IMG_START13
     sta TyVKY_BM0_START_ADDY_H
     RTS   
 
@@ -290,8 +289,7 @@ InitScene1
     sta TyVKY_BM0_START_ADDY_L
     lda #>IMG_START8 ; Set the middle byte of the bitmap’s address
     sta TyVKY_BM0_START_ADDY_M
-    lda #`IMG_START8 ; Set the upper two bits of the address
-    and #$03
+    lda #`IMG_START8 
     sta TyVKY_BM0_START_ADDY_H    
     RTS
 
@@ -307,8 +305,7 @@ InitScene2
     sta TyVKY_BM0_START_ADDY_L
     lda #>IMG_START16 ; Set the middle byte of the bitmap’s address
     sta TyVKY_BM0_START_ADDY_M
-    lda #`IMG_START16 ; Set the upper two bits of the address
-    and #$03
+    lda #`IMG_START16
     sta TyVKY_BM0_START_ADDY_H    
     RTS
 
