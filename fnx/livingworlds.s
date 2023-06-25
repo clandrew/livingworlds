@@ -13,6 +13,7 @@ right_arrow_next = $35
 left_arrow_cur = $36
 left_arrow_next = $37
 scene_index = $38
+fade_index = $39
 current_lut_pointer = $3A
 lineNumber = $40
 
@@ -142,6 +143,7 @@ MAIN
     STZ right_arrow_cur
     STZ right_arrow_next
 
+    STZ fade_index
     STZ scene_index
     JSR InitializeScene
     
@@ -151,9 +153,20 @@ MAIN
 
 Lock
     JSR UpdateLut
+
+    LDA fade_index
+    CMP #$00
+    BNE Fading
+
+PollKeyboard
     JSR PollLeftArrow
     JSR PollRightArrow
+    BRA WaitFor
 
+Fading
+    DEC fade_index
+
+WaitFor
     WAI
     WAI
     WAI
@@ -302,6 +315,9 @@ InitScene2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 InitializeScene
+    LDA #6
+    STA fade_index
+
     LDA scene_index
     CMP #$0
     BEQ LInitScene0
@@ -421,6 +437,42 @@ ClearScreen_ForEach
     PLA
     STA MMU_IO_CTRL ; Restore I/O page
     RTS
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Fade
+    PHX
+
+    ; Input in A
+    ; Output in A
+    LDX fade_index
+    CPX #0
+    BEQ Fade0
+    CPX #1
+    BEQ Fade1
+    CPX #2
+    BEQ Fade2
+    CPX #3
+    BEQ Fade3
+    CPX #4
+    BEQ Fade4
+    CPX #5
+    BEQ Fade5
+
+Fade6
+    LSR
+Fade5
+    LSR
+Fade4
+    LSR
+Fade3
+    LSR
+Fade2
+    LSR
+Fade1
+    LSR
+Fade0
+    PLX
+    RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -449,12 +501,15 @@ LutLoop
     LDY #$0
     
     LDA (src_pointer),Y
+    JSR Fade
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
+    JSR Fade
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
+    JSR Fade
     STA (dst_pointer),Y
 
     INX
