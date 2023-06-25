@@ -8,12 +8,16 @@
 
 dst_pointer = $30
 src_pointer = $32
-scene_index = $34
-fade_in_index = $35
-current_lut_pointer = $36
-fade_out_index = $38
-next_scene_index = $39
-fade_key = $3A
+right_arrow_cur = $34
+right_arrow_next = $35
+left_arrow_cur = $36
+left_arrow_next = $37
+scene_index = $38
+fade_in_index = $39
+current_lut_pointer = $3A
+fade_out_index = $3C
+next_scene_index = $3D
+fade_key = $3E
 
 ; Scene index 0 - 13
 ; Scene index 1 - 8
@@ -140,6 +144,9 @@ MAIN
     STA VIA0_PRA
     STZ VIA0_PRB
     
+    STZ right_arrow_cur
+    STZ right_arrow_next
+
     STZ fade_in_index
     STZ fade_out_index
     STZ fade_key
@@ -198,9 +205,26 @@ PollLeftArrow
     STA VIA1_PRA
     LDA VIA1_PRB
     CMP #(1 << 2 ^ $FF)
-    BNE LeftArrow_DoneAll
+    BNE LeftArrow_NotPressed
 
 LeftArrow_Pressed
+    LDA #$FF
+    STA left_arrow_next
+    BRA LeftArrow_DonePoll
+
+LeftArrow_NotPressed
+    LDA #$00
+    STA left_arrow_next
+
+LeftArrow_DonePoll
+    LDA left_arrow_next
+    CMP #$00
+    BNE LeftArrow_DoneAll
+
+    LDA left_arrow_cur
+    CMP #$FF
+    BNE LeftArrow_DoneAll
+
     ; Advance to next scene here
     LDA scene_index
     STA next_scene_index
@@ -217,6 +241,8 @@ LeftArrow_InitializeScene
     STA fade_key
     
 LeftArrow_DoneAll
+    LDA left_arrow_next
+    STA left_arrow_cur
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -225,9 +251,26 @@ PollRightArrow
     STA VIA1_PRA
     LDA VIA0_PRB
     CMP #(1 << 7 ^ $FF)
-    BNE RightArrow_DoneAll
+    BNE RightArrow_NotPressed
 
 RightArrow_Pressed
+    LDA #$FF
+    STA right_arrow_next
+    BRA RightArrow_DonePoll
+
+RightArrow_NotPressed
+    LDA #$00
+    STA right_arrow_next
+
+RightArrow_DonePoll
+    LDA right_arrow_next
+    CMP #$00
+    BNE RightArrow_DoneAll
+
+    LDA right_arrow_cur
+    CMP #$FF
+    BNE RightArrow_DoneAll
+
     ; Advance to next scene here
     LDA scene_index
     STA next_scene_index
@@ -243,6 +286,9 @@ RightArrow_InitializeScene
     STA fade_key
     
 RightArrow_DoneAll
+    LDA right_arrow_next
+    STA right_arrow_cur
+
     RTS
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -328,7 +374,7 @@ InitScene4
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 InitializeScene
-    LDA #7
+    LDA #6
     STA fade_in_index
     STA fade_key
 
@@ -467,6 +513,42 @@ ClearScreen_ForEach
     RTS
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Fade
+    PHX
+
+    ; Input in A
+    ; Output in A
+    LDX fade_key
+    CPX #0
+    BEQ Fade0
+    CPX #1
+    BEQ Fade1
+    CPX #2
+    BEQ Fade2
+    CPX #3
+    BEQ Fade3
+    CPX #4
+    BEQ Fade4
+    CPX #5
+    BEQ Fade5
+
+Fade6
+    LSR
+Fade5
+    LSR
+Fade4
+    LSR
+Fade3
+    LSR
+Fade2
+    LSR
+Fade1
+    LSR
+Fade0
+    PLX
+    RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 CopyBitmapLutToDevice
     ; Called on startup and every frame during VBLANK.
@@ -489,54 +571,25 @@ CopyBitmapLutToDevice
 
     LDX #$00
     LDA fade_key
-    BEQ ThunkLutLoopTestNoFade
-    CMP #$1
-    BEQ ThunkLutLoopTestFade1
-    CMP #$2
-    BEQ ThunkLutLoopTestFade2
-    CMP #$3
-    BEQ ThunkLutLoopTestFade3
-    CMP #$4
-    BEQ ThunkLutLoopTestFade4
-    CMP #$5
-    BEQ ThunkLutLoopTestFade5
+    BEQ LutLoopTestNoFade
 
-ThunkLutLoopTestFade6
-    JMP LutLoopTestFade6
-
-ThunkLutLoopTestFade5
-    JMP LutLoopTestFade5
+LutLoop
+    LDY #$0
     
-ThunkLutLoopTestFade4
-    JMP LutLoopTestFade4
-    
-ThunkLutLoopTestFade3
-    JMP LutLoopTestFade3
-    
-ThunkLutLoopTestFade2
-    JMP LutLoopTestFade2
-    
-ThunkLutLoopTestFade1
-    JMP LutLoopTestFade1
-
-ThunkLutLoopTestNoFade
-    JMP LutLoopTestNoFade
-
-LutLoopTestFade1
-    LDY #$0    
     LDA (src_pointer),Y
-    LSR
+    JSR Fade
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
-    LSR
+    JSR Fade
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
-    LSR
+    JSR Fade
     STA (dst_pointer),Y
+
     INX
-    BEQ LutLoopTestFade1Done     ; When X overflows, exit
+    BEQ LutDone     ; When X overflows, exit
 
     CLC
     LDA dst_pointer
@@ -553,229 +606,7 @@ LutLoopTestFade1
     LDA src_pointer+1
     ADC #$00 ; Add carry
     STA src_pointer+1
-    BRA LutLoopTestFade1
-LutLoopTestFade1Done
-    JMP LutDone
-
-LutLoopTestFade2
-    LDY #$0    
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INX
-    BEQ LutLoopTestFade2Done     ; When X overflows, exit
-
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoopTestFade2
-LutLoopTestFade2Done
-    JMP LutDone
-
-LutLoopTestFade3
-    LDY #$0    
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INX
-    BEQ LutLoopTestFade3Done     ; When X overflows, exit
-
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoopTestFade3
-LutLoopTestFade3Done
-    JMP LutDone
-
-LutLoopTestFade4
-    LDY #$0    
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INX
-    BEQ LutLoopTestFade4Done     ; When X overflows, exit
-
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoopTestFade4
-LutLoopTestFade4Done
-    JMP LutDone
-
-LutLoopTestFade5
-    LDY #$0    
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INX
-    BEQ LutLoopTestFade5Done     ; When X overflows, exit
-    
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoopTestFade5
-LutLoopTestFade5Done
-    JMP LutDone
-
-LutLoopTestFade6
-    LDY #$0    
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INY
-    LDA (src_pointer),Y
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    LSR
-    STA (dst_pointer),Y
-    INX
-    BEQ LutLoopTestFade6Done     ; When X overflows, exit
-
-    CLC
-    LDA dst_pointer
-    ADC #$04
-    STA dst_pointer
-    LDA dst_pointer+1
-    ADC #$00 ; Add carry
-    STA dst_pointer+1
-    
-    CLC
-    LDA src_pointer
-    ADC #$04
-    STA src_pointer
-    LDA src_pointer+1
-    ADC #$00 ; Add carry
-    STA src_pointer+1
-    BRA LutLoopTestFade6
-LutLoopTestFade6Done
-    JMP LutDone
+    BRA LutLoop
 
 LutLoopTestNoFade
     LDY #$0
