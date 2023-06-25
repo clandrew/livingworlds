@@ -21,6 +21,7 @@ lineNumber = $40
 ; Scene index 1 - 8
 ; Scene index 2 - 16
 ; Scene index 3 - 17
+; Scene index 4 - 18
 
 ; Code
 * = $000000 
@@ -209,7 +210,7 @@ LeftArrow_DonePoll
     DEC scene_index
     BRA LeftArrow_InitializeScene
 LeftArrow_Wraparound
-    LDA #(4-1)
+    LDA #(5-1)
     STA scene_index
 LeftArrow_InitializeScene
     JSR InitializeScene
@@ -247,7 +248,7 @@ RightArrow_DonePoll
 
     ; Advance to next scene here
     LDA scene_index
-    CMP #(4-1) ; limit
+    CMP #(5-1) ; limit
     BEQ RightArrow_Wraparound
     INC scene_index
     BRA RightArrow_InitializeScene
@@ -327,6 +328,22 @@ InitScene3
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+InitScene4
+    LDA #<LUT_START18
+    STA current_lut_pointer
+    LDA #>LUT_START18
+    STA current_lut_pointer+1
+
+    ; Now copy graphics data
+    lda #<IMG_START18 ; Set the low byte of the bitmap’s address
+    sta TyVKY_BM0_START_ADDY_L
+    lda #>IMG_START18 ; Set the middle byte of the bitmap’s address
+    sta TyVKY_BM0_START_ADDY_M
+    lda #`IMG_START18
+    sta TyVKY_BM0_START_ADDY_H    
+    RTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 InitializeScene
     LDA #6
@@ -344,6 +361,9 @@ InitializeScene
     
     CMP #$3
     BEQ LInitScene3
+    
+    CMP #$4
+    BEQ LInitScene4
 
     RTS
 
@@ -361,6 +381,10 @@ LInitScene2
 
 LInitScene3
     JSR InitScene3
+    RTS
+
+LInitScene4
+    JSR InitScene4
     RTS
 
 ;;;;;;;;;;;;
@@ -637,6 +661,10 @@ Cycle17
 .include "cycle.17.s"
     RTS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Cycle18
+.include "cycle.18.s"
+    RTS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 UpdateLut
     LDA scene_index
@@ -648,6 +676,8 @@ UpdateLut
     BEQ UpdateLutScene2
     CMP #3
     BEQ UpdateLutScene3
+    CMP #4
+    BEQ UpdateLutScene4
     RTS
    
 UpdateLutScene0
@@ -666,6 +696,10 @@ UpdateLutScene3
     JSR Cycle17
     RTS
 
+UpdateLutScene4
+    JSR Cycle18
+    RTS
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .align 4, $EA 
@@ -676,6 +710,8 @@ UpdateLutScene3
 .include "rsrc/colors.16.s"
 .align 4, $EA 
 .include "rsrc/colors.17.s"
+.align 4, $EA 
+.include "rsrc/colors.18.s"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -690,6 +726,7 @@ UpdateLutScene3
 .include "rsrc/pixmap.13.s"
 .include "rsrc/pixmap.16.s"
 .include "rsrc/pixmap.17.s"
+.include "rsrc/pixmap.18.s"
 .endlogical
 
 ; Write the system vectors
