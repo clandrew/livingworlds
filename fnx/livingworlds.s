@@ -18,7 +18,6 @@ current_lut_pointer = $3A
 fade_out_index = $3C
 next_scene_index = $3D
 fade_key = $3E
-fn_table = $40
 
 ; Scene index 0 - 13
 ; Scene index 1 - 8
@@ -144,11 +143,6 @@ MAIN
     STA VIA0_DDRA
     STA VIA0_PRA
     STZ VIA0_PRB
-
-    LDA <#FnTable
-    STA fn_table
-    LDA >#FnTable
-    STA fn_table+1
     
     STZ right_arrow_cur
     STZ right_arrow_next
@@ -519,6 +513,24 @@ ClearScreen_ForEach
     RTS
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Fade
+    PHX
+
+    ; Input in A
+    ; Output in A
+    LDX fade_key
+    CPX #0
+    BEQ Fade0
+    CPX #1
+    BEQ Fade1
+    CPX #2
+    BEQ Fade2
+    CPX #3
+    BEQ Fade3
+    CPX #4
+    BEQ Fade4
+    CPX #5
+    BEQ Fade5
 
 Fade6
     LSR
@@ -533,33 +545,7 @@ Fade2
 Fade1
     LSR
 Fade0
-    RTS
-    
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-FnTable
-    .word Fade0
-    .word Fade1
-    .word Fade2
-    .word Fade3
-    .word Fade4
-    .word Fade5
-    .word Fade6
-
-WriteFadeFn
-    LDA fade_key
-    ASL
-    TAY
-    LDA (fn_table),Y
-    STA FadeFn0
-    STA FadeFn1
-    STA FadeFn2
-    INY
-    LDA (fn_table),Y
-    STA FadeFn0+1
-    STA FadeFn1+1
-    STA FadeFn2+1
-
+    PLX
     RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -582,8 +568,6 @@ CopyBitmapLutToDevice
     STA src_pointer
     LDA current_lut_pointer+1
     STA src_pointer+1
-    
-    JSR WriteFadeFn
 
     LDX #$00
 
@@ -591,22 +575,15 @@ LutLoop
     LDY #$0
     
     LDA (src_pointer),Y
-    .byte $20
-FadeFn0
-    .word Fade0
-    STA (dst_pointer),Y
-    INY
-    
-    LDA (src_pointer),Y
-    .byte $20
-FadeFn1
-    .word Fade0
+    JSR Fade
     STA (dst_pointer),Y
     INY
     LDA (src_pointer),Y
-    .byte $20
-FadeFn2
-    .word Fade0
+    JSR Fade
+    STA (dst_pointer),Y
+    INY
+    LDA (src_pointer),Y
+    JSR Fade
     STA (dst_pointer),Y
 
     INX
