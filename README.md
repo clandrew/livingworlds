@@ -7,6 +7,25 @@ How to run it on F256k or F256 Jr:
   * Use a tool like the 'F256 Uploader', distributed by the hardware vendor, or FoenixMgr available [here](https://github.com/pweingar/FoenixMgr) to transmit the binary over COM3 (USB) interface. 
   * Choose "Boot from RAM" and load it at 0x0000, or the offset in the filename for already-released binaries (e.g., if the release is called livingworlds.0800.bin, load it at 0800).
 
+How to run it on FoenixIDE emulator:
+  * Use the latest emulator.
+  * Build the vcproj accordingly.
+  * Launch the emulator, and ensure that it's on F256 board mode (see the indicator in the lower left), not Rev U or Rev C or so forth.
+  * Go to File -> Open Executable File and choose the .hex file.
+  * Hit "Run".
+
+See the note under 'Controls' about keyboard with the emulator.
+
+-----
+## Controls
+The application responds to F256k arrow keys.
+
+**Left arrow** - Move to the previous scene.
+
+**Right arrow** - Move to the next scene.
+
+If you are on emulator, keyboard support has been added recently. To get it, please use the latest version of [this fork](https://github.com/clandrew/fnxide) where I added it there.
+
 -----
 
 ## Build
