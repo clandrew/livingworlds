@@ -18,6 +18,8 @@ current_lut_pointer = $3A
 fade_out_index = $3C
 next_scene_index = $3D
 fade_key = $3E
+current_frame_index = $3F
+next_frame_index = $40
 
 ; Scene index 0 - 13
 ; Scene index 1 - 8
@@ -151,6 +153,8 @@ MAIN
     STZ fade_out_index
     STZ fade_key
     STZ scene_index
+    STZ current_frame_index
+    STZ next_frame_index
     JSR InitializeScene
     
     JSR CopyBitmapLutToDevice
@@ -158,8 +162,19 @@ MAIN
     JSR Init_IRQHandler    
 
 Lock
-    JSR UpdateLut
+    LDA current_frame_index
+    CMP next_frame_index
+    BEQ DoneRedrawCheck
 
+DoRedraw
+    JSR UpdateLut        
+    JSR CopyBitmapLutToDevice
+    LDA next_frame_index
+    STA current_frame_index
+
+DoneRedrawCheck
+
+; Poll keyboard
     LDA fade_in_index
     CMP #$00
     BNE FadingIn
@@ -467,7 +482,10 @@ IRQ_Handler
     ; Clear the flag for start-of-frame
     STA INT_PENDING_REG0        
 
-    JSR CopyBitmapLutToDevice
+    ; Advance frame
+    LDA current_frame_index
+    INC A
+    STA next_frame_index
 
 IRQ_Handler_Done
     ; Restore the I/O page
