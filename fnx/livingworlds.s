@@ -18,8 +18,7 @@ current_lut_pointer = $3A
 fade_out_index = $3C
 next_scene_index = $3D
 fade_key = $3E
-current_frame_index = $3F
-next_frame_index = $40
+animation_index = $3F
 
 ; Scene index 0 - 13
 ; Scene index 1 - 8
@@ -153,8 +152,7 @@ MAIN
     STZ fade_out_index
     STZ fade_key
     STZ scene_index
-    STZ current_frame_index
-    STZ next_frame_index
+    STZ animation_index
     JSR InitializeScene
     
     JSR CopyBitmapLutToDevice
@@ -162,40 +160,38 @@ MAIN
     JSR Init_IRQHandler    
 
 Lock
-    LDA current_frame_index
-    CMP next_frame_index
-    BEQ DoneRedrawCheck
+    LDA animation_index
+    BNE Lock
 
-DoRedraw
-    JSR UpdateLut        
-    JSR CopyBitmapLutToDevice
-    LDA next_frame_index
-    STA current_frame_index
+UpdateCheck 
+    ; Reset for next frame
+    LDA #$5
+    STA animation_index
 
-DoneRedrawCheck
-
-; Poll keyboard
+    ; Update fade
     LDA fade_in_index
     CMP #$00
-    BNE FadingIn
-
+    BNE ApplyFadeIn
+    
     LDA fade_out_index
     CMP #$00
-    BNE FadingOut
+    BNE ApplyFadeOut
 
-PollKeyboard
-    JSR PollLeftArrow
-    JSR PollRightArrow
-    BRA WaitFor
+    ; No fade
+    JSR UpdateLut
+    JSR CopyBitmapLutToDevice   
+    BRA PollKeyboard
 
-FadingIn
+ApplyFadeIn
     DEC fade_in_index
-    DEC fade_key
-    BRA WaitFor
+    DEC fade_key 
+    JSR CopyBitmapLutToDevice
+    BRA Lock
 
-FadingOut
+ApplyFadeOut
     INC fade_out_index
     INC fade_key
+    JSR CopyBitmapLutToDevice   
     LDA fade_key
     CMP #7
     BNE WaitFor
@@ -204,14 +200,16 @@ FadingOut
     LDA next_scene_index
     STA scene_index
     JSR InitializeScene
+    JSR CopyBitmapLutToDevice
+    BRA Lock
+
+PollKeyboard
+    JSR PollLeftArrow
+    JSR PollRightArrow
+    BRA WaitFor
 
 WaitFor
-    WAI
-    WAI
-    WAI
-    WAI
-    WAI
-    WAI
+
     JMP Lock
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -483,9 +481,10 @@ IRQ_Handler
     STA INT_PENDING_REG0        
 
     ; Advance frame
-    LDA current_frame_index
-    INC A
-    STA next_frame_index
+    LDA animation_index
+    BEQ IRQ_Handler_Done
+    DEC A
+    STA animation_index
 
 IRQ_Handler_Done
     ; Restore the I/O page
