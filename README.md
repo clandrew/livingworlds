@@ -1,7 +1,14 @@
 # livingworlds
 This is a color cycling demo based on Mark Ferrari's "Living Worlds" found here: http://www.effectgames.com/demos/worlds/. This is ported to the Foenix F256 platform for educational purposes.
 
-How to run it on F256k or F256 Jr:
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/AbQHFqaOSMo/0.jpg)](http://www.youtube.com/watch?v=AbQHFqaOSMo "Video Title")
+
+![alt text](https://raw.githubusercontent.com/clandrew/livingworlds/main/Images/LivingWorlds.gif?raw=true)
+
+<img src="https://raw.githubusercontent.com/clandrew/livingworlds/main/Images/LivingWorlds1.PNG" width="300"> <img src="https://raw.githubusercontent.com/clandrew/livingworlds/main/Images/LivingWorlds2.PNG" width="300">
+
+How to run it on F256k or F256 Jr hardware:
   * Use an F256 system with a 6502-based or 65816-based CPU.
   * Build the vcproj accordingly.
   * Use a tool like the 'F256 Uploader', distributed by the hardware vendor, or FoenixMgr available [here](https://github.com/pweingar/FoenixMgr) to transmit the binary over COM3 (USB) interface. 
