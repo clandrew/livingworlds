@@ -31,7 +31,7 @@ The application responds to F256k arrow keys.
 
 **Right arrow** - Move to the next scene.
 
-If you are on emulator, keyboard support has been added recently. To get it, please use the latest version of [this fork](https://github.com/clandrew/fnxide) where I added it there.
+If you are on emulator, keyboard support has been added recently. To get it, use [release 0.6.0.11](https://github.com/Trinity-11/FoenixIDE/releases/tag/release-0.6.0.11) or later.
 
 -----
 
