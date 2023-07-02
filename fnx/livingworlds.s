@@ -30,11 +30,6 @@ animation_index = $3F
 * = $000000 
         .byte 0
 
-; This program uses bank 1 (2000-4000) to be a memory window into image data -
-; see "bank_loop" for info on that. Therefore, don't put program code in
-; bank 1. And bank 0 (0000-2000) has a bunch of reserved stuff in it. Therefore,
-; put the program in bank 2 starting at 4000. Besides bank_loop's partying,
-; this program sets its MLUT to point to sequential system memory.
 * = $4000
 .logical $4000
 
