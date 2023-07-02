@@ -177,13 +177,14 @@
   <ItemGroup>
     <CustomBuild Include="livingworlds.s">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">echo d:\64tass\64tass --long-address --flat -b --m65816 -D TARGETFMT=\"bin\" -o $(TargetDir)livingworlds.bin --list=$(TargetDir)livingworlds.lst --labels=livingworlds.lbl $(ProjectDir)livingworlds.s
-d:\64tass\64tass --long-address --flat -b --m65816 -D TARGETFMT=\"bin\" -o $(TargetDir)livingworlds.bin --list=$(TargetDir)livingworlds.lst --labels=livingworlds.lbl $(ProjectDir)livingworlds.s
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set vcmd=d:\64tass\64tass --long-address --flat -b --m65816 -o $(TargetDir)livingworlds.bin --list=$(TargetDir)livingworlds.lst --labels=$(TargetDir)livingworlds.lbl $(ProjectDir)livingworlds.s
+echo %vcmd%"
+%vcmd%
 echo ==============
 echo Copying result:
-echo copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd"
-copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd"
-</Command>
+set vcmd=copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd"
+echo %vcmd%"
+%vcmd%</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">echo d:\64tass\64tass --long-address --flat -b --m65816 -o $(TargetDir)livingworlds.bin --list=$(TargetDir)livingworlds.lst --labels=livingworlds.lbl $(ProjectDir)livingworlds.s
 d:\64tass\64tass --long-address --flat -b --m65816 -o $(TargetDir)livingworlds.bin --list=$(TargetDir)livingworlds.lst --labels=livingworlds.lbl $(ProjectDir)livingworlds.s
 echo ==============

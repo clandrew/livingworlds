@@ -9,28 +9,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "livingworlds.hex", "livingw
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
+		Debug|65816 = Debug|65816
+		Release|65816 = Release|65816
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|x64.ActiveCfg = Debug|x64
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|x64.Build.0 = Debug|x64
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|x86.ActiveCfg = Debug|Win32
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|x86.Build.0 = Debug|Win32
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|x64.ActiveCfg = Release|x64
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|x64.Build.0 = Release|x64
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|x86.ActiveCfg = Release|Win32
-		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|x86.Build.0 = Release|Win32
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|x64.ActiveCfg = Debug|x64
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|x64.Build.0 = Debug|x64
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|x86.ActiveCfg = Debug|Win32
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|x86.Build.0 = Debug|Win32
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|x64.ActiveCfg = Release|x64
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|x64.Build.0 = Release|x64
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|x86.ActiveCfg = Release|Win32
-		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|x86.Build.0 = Release|Win32
+		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|65816.ActiveCfg = Debug|Win32
+		{733CAE12-E50F-498A-81BF-67A2426BB033}.Debug|65816.Build.0 = Debug|Win32
+		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|65816.ActiveCfg = Release|Win32
+		{733CAE12-E50F-498A-81BF-67A2426BB033}.Release|65816.Build.0 = Release|Win32
+		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|65816.ActiveCfg = Debug|Win32
+		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|65816.Build.0 = Debug|Win32
+		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|65816.ActiveCfg = Release|Win32
+		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|65816.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
