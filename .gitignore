@@ -2,6 +2,8 @@
 Debug/
 Release/
 x64/
+out/
+build/
 /fnx/reference/
 /fnx/Debug
 /fnx/Release
@@ -9,3 +11,4 @@ x64/
 /fnx/.vs
 *.lbl
 *.php
+.DS_Store
