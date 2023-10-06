@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{EA4561D6-61C5-469C-8E28-72611E5277A7}</ProjectGuid>
+    <ProjectGuid>{663377DA-E65D-4CFF-8402-0FD06DA7E9B5}</ProjectGuid>
     <RootNamespace>livingworlds</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetExt>.hex</TargetExt>
+    <TargetExt>.pgz</TargetExt>
     <TargetName>livingworlds</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -98,7 +98,7 @@
     <CustomBuild>
       <Command>
       </Command>
-      <Outputs>$(TargetDir)livingworlds.hex;$(TargetDir)livingworlds.lst</Outputs>
+      <Outputs>$(TargetDir)livingworlds.pgz;$(TargetDir)livingworlds.lst</Outputs>
     </CustomBuild>
     <PostBuildEvent>
       <Command>
@@ -177,16 +177,18 @@
   <ItemGroup>
     <CustomBuild Include="livingworlds.s">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set vcmd=d:\64tass\64tass --long-address --flat -b --m65816 -D TARGETFMT=\"hex\" --intel-hex -o $(TargetDir)livingworlds.hex --list=$(TargetDir)livingworlds.lst --labels=$(TargetDir)livingworlds.lbl $(ProjectDir)livingworlds.s
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set vcmd=d:\64tass\64tass --long-address --flat -b --m65816 -D TARGETFMT=\"pgz\" -o $(TargetDir)liv.pgz --list=$(TargetDir)liv.pgz.lst --labels=$(TargetDir)liv.pgz.lbl $(ProjectDir)livingworlds.s
 echo %vcmd%"
 %vcmd%
 echo ==============
 echo Copying result:
-set vcmd=copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd"
+set vcmd=copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd\liv.pgz"
 echo %vcmd%"
-%vcmd%
-</Command>
+%vcmd%</Command>
     </CustomBuild>
+    <None Include="platform.s">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

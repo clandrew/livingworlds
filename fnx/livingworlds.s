@@ -26,12 +26,33 @@ animation_index = $3F
 ; Scene index 3 - 17
 ; Scene index 4 - 18
 
-; Code
+; Code  
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
 * = $000000 
         .byte 0
 
 * = $4000
+.endif
+
+.if TARGETFMT = "pgz"
+; Main segment metadata
+* =  0
+
+                ; Place the one-byte PGZ signature before the code section
+                .text "Z"           
+                .long MAIN_SEGMENT_START               
+                
+                ; Three-byte segment size. Make sure the size DOESN'T include this metadata.
+                .long MAIN_SEGMENT_END - MAIN_SEGMENT_START 
+
+                ; Note that when your executable is loaded, *only* the data segment after the metadata is loaded into memory. 
+                ; The 'Z' signature above, and the metadata isn't loaded into memory.
+.endif
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 .logical $4000
+MAIN_SEGMENT_START
 
 tmpr .byte ?            ; A backed-up-and-restored color
 tmpg .byte ?            
@@ -42,20 +63,26 @@ iter_j .byte ?
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 F256_RESET
+ENTRYPOINT
     CLC     ; disable interrupts
     SEI
     LDX #$FF
     TXS     ; initialize stack
 
     ; initialize mmu
+    
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
     STZ MMU_MEM_CTRL
+.endif
+
     LDA MMU_MEM_CTRL
     ORA #MMU_EDIT_EN
 
     ; enable mmu edit, edit mmu lut 0, activate mmu lut 0
     STA MMU_MEM_CTRL
     STZ MMU_IO_CTRL
-
+    
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
     LDA #$00
     STA MMU_MEM_BANK_0 ; map $000000 to bank 0
     INA
@@ -75,6 +102,7 @@ F256_RESET
     LDA MMU_MEM_CTRL
     AND #~(MMU_EDIT_EN)
     STA MMU_MEM_CTRL  ; disable mmu edit, use mmu lut 0
+.endif
 
                         ; initialize interrupts
     LDA #$FF            ; mask off all interrupts
@@ -94,10 +122,14 @@ F256_RESET
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 MAIN
+
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
     LDA #MMU_EDIT_EN
     STA MMU_MEM_CTRL
     STZ MMU_IO_CTRL 
     STZ MMU_MEM_CTRL    
+.endif
+
     LDA #(Mstr_Ctrl_Text_Mode_En|Mstr_Ctrl_Text_Overlay|Mstr_Ctrl_Graph_Mode_En|Mstr_Ctrl_Bitmap_En)
     STA @w MASTER_CTRL_REG_L 
     LDA #(Mstr_Ctrl_Text_XDouble|Mstr_Ctrl_Text_YDouble)
@@ -385,7 +417,7 @@ InitializeScene
     LDA #6
     STA fade_in_index
     STA fade_key
-
+    
     LDA scene_index
     CMP #$0
     BEQ LInitScene0
@@ -411,7 +443,7 @@ LInitScene0
 LInitScene1
     JSR InitScene1
     RTS
-
+    
 LInitScene2
     JSR InitScene2
     RTS
@@ -790,20 +822,32 @@ UpdateLutScene4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+MAIN_SEGMENT_END
 .endlogical
 
-; Emitted with 
-;     D:\repos\fnxapp\BitmapEmbedder\x64\Release\BitmapEmbedder.exe D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\livingworlds.bmp D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\colors.s D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\pixmap.s --halfsize
+.if TARGETFMT = "pgz"
+; Data segment metadata
+                .long DATA_SEGMENT_START
+                .long DATA_SEGMENT_END-DATA_SEGMENT_START
+.endif
 
+; Emitted with 
+;     D:\repos\fnxapp \BitmapEmbedder\x64\Release\BitmapEmbedder.exe D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\livingworlds.bmp D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\colors.s D:\repos\fnxapp\livingworlds\tinyvicky\rsrc\pixmap.s --halfsize
+
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
 * = $010000
+.endif
 .logical $10000
+DATA_SEGMENT_START
 .include "rsrc/pixmap.8.s"
 .include "rsrc/pixmap.13.s"
 .include "rsrc/pixmap.16.s"
 .include "rsrc/pixmap.17.s"
 .include "rsrc/pixmap.18.s"
+DATA_SEGMENT_END
 .endlogical
 
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
 ; Write the system vectors
 * = $00FFF8
 .logical $FFF8
@@ -815,3 +859,10 @@ F256_DUMMYIRQ       ; Abort vector
 .word F256_RESET    ; reset
 .word F256_DUMMYIRQ ; irq
 .endlogical
+.endif
+
+.if TARGETFMT = "pgz"
+; Entrypoint segment metadata
+                .long ENTRYPOINT
+                .long 0       ; Dummy value to indicate this segment is for declaring the entrypoint.
+.endif

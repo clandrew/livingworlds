@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "livingworlds.bin", "livingw
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "livingworlds.hex", "livingworlds.hex.vcxproj", "{EA4561D6-61C5-469C-8E28-72611E5277A7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "livingworlds.pgz", "livingworlds.pgz.vcxproj", "{663377DA-E65D-4CFF-8402-0FD06DA7E9B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|65816 = Debug|65816
@@ -21,6 +23,9 @@ Global
 		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Debug|65816.Build.0 = Debug|Win32
 		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|65816.ActiveCfg = Release|Win32
 		{EA4561D6-61C5-469C-8E28-72611E5277A7}.Release|65816.Build.0 = Release|Win32
+		{663377DA-E65D-4CFF-8402-0FD06DA7E9B5}.Debug|65816.ActiveCfg = Debug|Win32
+		{663377DA-E65D-4CFF-8402-0FD06DA7E9B5}.Debug|65816.Build.0 = Debug|Win32
+		{663377DA-E65D-4CFF-8402-0FD06DA7E9B5}.Release|65816.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
