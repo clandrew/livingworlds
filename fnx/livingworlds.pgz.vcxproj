@@ -182,7 +182,7 @@ echo %vcmd%"
 %vcmd%
 echo ==============
 echo Copying result:
-set vcmd=copy /Y $(TargetPath) "$(ProjectDir)..\..\fnxapp\sd\liv.pgz"
+set vcmd=copy /Y $(TargetDir)liv.pgz "$(ProjectDir)..\..\fnxapp\sd\test\liv.pgz"
 echo %vcmd%"
 %vcmd%</Command>
     </CustomBuild>

@@ -5,6 +5,7 @@
 .include "includes/f256jr_registers.asm"
 .include "includes/f256k_registers.asm"
 .include "includes/macros.s"
+.include "includes/api.asm"
 
 dst_pointer = $30
 src_pointer = $32
@@ -183,17 +184,47 @@ MAIN
     JSR InitializeScene
     
     JSR CopyBitmapLutToDevice
-
-    JSR Init_IRQHandler    
+    
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
+    JSR Init_IRQHandler     
+.endif
 
 Lock
+
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
+
+    ; SOF handler will update animation_index behind the scenes.
     LDA animation_index
     BNE Lock
 
-UpdateCheck 
-    ; Reset for next frame
+    ; Unblocked. Reset for next frame
     LDA #$5
     STA animation_index
+.endif
+
+.if TARGETFMT = "pgz"
+    ; Request a frame notification from kernel
+    lda #kernel.args.timer.FRAMES   ; Choose frames, not seconds
+    sta kernel.args.timer.units
+
+    lda #$05 ; Five frames
+    sta kernel.args.timer.absolute
+
+    LDA #$01 ; Number to use as an event handle
+    STA kernel.args.timer.cookie
+
+    jsr kernel.Clock.SetTimer
+
+    LDA #<dst_pointer
+    STA kernel.args.events.dest+0
+    LDA #>dst_pointer
+    STA kernel.args.events.dest+1
+
+WaitForKernelEvent
+    JSR kernel.NextEvent
+    BCS WaitForKernelEvent
+    
+.endif
 
     ; Update fade
     LDA fade_in_index
@@ -523,6 +554,12 @@ IRQ_Handler_Done
     PLA
     PLP
     RTI
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Init_KernelTimer
+
+    ;RTS
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
