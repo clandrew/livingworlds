@@ -60,27 +60,29 @@ tmpg .byte ?
 tmpb .byte ?
 iter_i .byte ?          ; Couple counters
 iter_j .byte ?
+event       .dstruct    kernel.event.event_t
     
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 F256_RESET
 ENTRYPOINT
+    
+.if TARGETFMT = "bin" || TARGETFMT = "hex"
     CLC     ; disable interrupts
     SEI
     LDX #$FF
     TXS     ; initialize stack
 
     ; initialize mmu
-    
-.if TARGETFMT = "bin" || TARGETFMT = "hex"
     STZ MMU_MEM_CTRL
-.endif
 
     LDA MMU_MEM_CTRL
     ORA #MMU_EDIT_EN
 
     ; enable mmu edit, edit mmu lut 0, activate mmu lut 0
     STA MMU_MEM_CTRL
+
+.endif
     STZ MMU_IO_CTRL
     
 .if TARGETFMT = "bin" || TARGETFMT = "hex"
@@ -103,7 +105,6 @@ ENTRYPOINT
     LDA MMU_MEM_CTRL
     AND #~(MMU_EDIT_EN)
     STA MMU_MEM_CTRL  ; disable mmu edit, use mmu lut 0
-.endif
 
                         ; initialize interrupts
     LDA #$FF            ; mask off all interrupts
@@ -118,6 +119,8 @@ ENTRYPOINT
     STA INT_PENDING_REG1
 
     CLI ; Enable interrupts
+.endif
+
     JMP MAIN
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -189,6 +192,13 @@ MAIN
     JSR Init_IRQHandler     
 .endif
 
+    ; Schedule the first frame event.
+    lda     #kernel.args.timer.FRAMES | kernel.args.timer.QUERY
+    sta     kernel.args.timer.units
+    jsr     kernel.Clock.SetTimer
+    sta     animation_index
+    jsr     timer_schedule
+
 Lock
 
 .if TARGETFMT = "bin" || TARGETFMT = "hex"
@@ -207,7 +217,7 @@ Lock
     lda #kernel.args.timer.FRAMES   ; Choose frames, not seconds
     sta kernel.args.timer.units
 
-    lda #$05 ; Five frames
+    lda animation_index ; Specify dest frame index
     sta kernel.args.timer.absolute
 
     LDA #$01 ; Number to use as an event handle
@@ -215,14 +225,21 @@ Lock
 
     jsr kernel.Clock.SetTimer
 
-    LDA #<dst_pointer
+    LDA #<event
     STA kernel.args.events.dest+0
-    LDA #>dst_pointer
+    LDA #>event
     STA kernel.args.events.dest+1
 
 WaitForKernelEvent
+    inc     $c001
+    bit     kernel.args.events.pending
     JSR kernel.NextEvent
-    BCS WaitForKernelEvent
+    BCC DoneWaitForKernelEvent
+    JSR kernel.Yield
+    BRA WaitForKernelEvent
+DoneWaitForKernelEvent
+
+    INC animation_index
     
 .endif
 
