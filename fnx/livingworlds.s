@@ -192,13 +192,6 @@ MAIN
     JSR Init_IRQHandler     
 .endif
 
-    ; Schedule the first frame event.
-    lda     #kernel.args.timer.FRAMES | kernel.args.timer.QUERY
-    sta     kernel.args.timer.units
-    jsr     kernel.Clock.SetTimer
-    sta     animation_index
-    jsr     timer_schedule
-
 Lock
 
 .if TARGETFMT = "bin" || TARGETFMT = "hex"
@@ -213,32 +206,29 @@ Lock
 .endif
 
 .if TARGETFMT = "pgz"
-    ; Request a frame notification from kernel
-    lda #kernel.args.timer.FRAMES   ; Choose frames, not seconds
-    sta kernel.args.timer.units
 
-    lda animation_index ; Specify dest frame index
-    sta kernel.args.timer.absolute
+; Compute the time for the next event.    
+_retry
+    lda     #kernel.args.timer.FRAMES
+    sta     kernel.args.timer.units
+    lda     animation_index
+    sta     kernel.args.timer.absolute
+    lda     #1
+    sta     kernel.args.timer.cookie
+    jsr     kernel.Clock.SetTimer
+    LDA     kernel.args.events.pending
+    BEQ _retry
 
-    LDA #$01 ; Number to use as an event handle
-    STA kernel.args.timer.cookie
+_someevent
+    jsr     kernel.NextEvent
+    lda     event.type
+    CMP     #kernel.event.timer.EXPIRED
+    BNE _retry
 
-    jsr kernel.Clock.SetTimer
+    ; Done timer_schedule
 
-    LDA #<event
-    STA kernel.args.events.dest+0
-    LDA #>event
-    STA kernel.args.events.dest+1
-
-WaitForKernelEvent
-    inc     $c001
-    bit     kernel.args.events.pending
-    JSR kernel.NextEvent
-    BCC DoneWaitForKernelEvent
-    JSR kernel.Yield
-    BRA WaitForKernelEvent
-DoneWaitForKernelEvent
-
+_timerevent
+    BRK
     INC animation_index
     
 .endif
